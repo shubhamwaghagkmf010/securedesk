@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap");
 
 /* SecureDesk "Aurora Glass" dark theme (loaded after darkly.min.css) */
 :root {
@@ -16,11 +16,47 @@
     --sd-grad: linear-gradient(135deg, #2DD4BF, #7C6CFF);
 }
 
+/* Customise here: the name shown big in the middle of every page (use "" to hide it)
+   and the background picture (replace /images/sd_bg.png or change the url). */
+:root {
+    --sd-watermark: "SecureDesk";
+    --sd-bg-image: url("/images/sd_bg.png");
+}
+
+html {
+    background: var(--sd-bg-image) center bottom / cover no-repeat fixed, var(--sd-bg) !important;
+}
+
 html, body {
-    font-family: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif !important;
+    font-family: "Manrope", "Segoe UI", system-ui, sans-serif !important;
     color: var(--sd-text);
-    background: radial-gradient(900px 600px at 12% 0%, rgba(124,108,255,0.22), transparent 60%), radial-gradient(800px 600px at 100% 100%, rgba(45,212,191,0.15), transparent 60%), var(--sd-bg) !important;
-    background-attachment: fixed !important;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+}
+
+body { background: transparent !important; }
+
+/* Brand name in the middle of the page, behind the content */
+body::before {
+    content: var(--sd-watermark);
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: -1;
+    pointer-events: none;
+    font-size: clamp(64px, 14vw, 220px);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    color: rgba(255,255,255,0.045);
+    background: var(--sd-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    opacity: 0.16;
+    user-select: none;
 }
 
 a { color: #5EEAD4; }
