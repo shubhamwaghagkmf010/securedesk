@@ -1,0 +1,185 @@
+<Window x:Class="Remotely.Agent.Installer.Win.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ViewModels="clr-namespace:Remotely.Agent.Installer.Win.ViewModels"
+        xmlns:local="clr-namespace:Remotely.Agent.Installer.Win"
+        mc:Ignorable="d"
+        WindowStyle="None"
+        ResizeMode="CanMinimize"
+        AllowsTransparency="True"
+        Background="Transparent"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown"
+        Loaded="Window_Loaded"
+        WindowStartupLocation="CenterScreen"
+        Title="SecureDesk Installer" Height="490" Width="600" Icon="{Binding Icon}">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Themes/SecureDeskTheme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Window.DataContext>
+        <ViewModels:MainWindowViewModel/>
+    </Window.DataContext>
+
+    <Border x:Name="Frame" Margin="18" CornerRadius="20" BorderThickness="1.6" SnapsToDevicePixels="True"
+            TextElement.FontFamily="{StaticResource SdSans}" TextElement.Foreground="{StaticResource SdText}" TextElement.FontSize="14">
+        <Border.Background>
+            <ImageBrush ImageSource="pack://application:,,,/Assets/inst_bg.png" Stretch="UniformToFill" />
+        </Border.Background>
+        <Border.Effect>
+            <DropShadowEffect Color="#06B6D4" BlurRadius="26" ShadowDepth="0" Opacity="0.28" />
+        </Border.Effect>
+        <Border.BorderBrush>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#CC06B6D4" Offset="0" />
+                <GradientStop Color="#CC14B8A6" Offset="0.3" />
+                <GradientStop Color="#CC3B82F6" Offset="0.6" />
+                <GradientStop Color="#CC8B5CF6" Offset="0.8" />
+                <GradientStop Color="#CC06B6D4" Offset="1" />
+                <LinearGradientBrush.RelativeTransform>
+                    <RotateTransform x:Name="BorderRotate" CenterX="0.5" CenterY="0.5" Angle="0" />
+                </LinearGradientBrush.RelativeTransform>
+            </LinearGradientBrush>
+        </Border.BorderBrush>
+        <Border.Triggers>
+            <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                <BeginStoryboard>
+                    <Storyboard RepeatBehavior="Forever">
+                        <DoubleAnimation Storyboard.TargetName="BorderRotate" Storyboard.TargetProperty="Angle"
+                                         From="0" To="360" Duration="0:0:7" />
+                    </Storyboard>
+                </BeginStoryboard>
+            </EventTrigger>
+        </Border.Triggers>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="68" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="76" />
+            </Grid.RowDefinitions>
+
+            <!-- Title bar -->
+            <Grid Grid.Row="0" Margin="24,0,14,0">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Image Source="{Binding Icon}" Width="40" Height="40" RenderOptions.BitmapScalingMode="HighQuality" />
+                    <TextBlock Margin="14,0,0,0" VerticalAlignment="Center" Foreground="White" FontSize="23">
+                        <Run Text="{Binding ProductName, Mode=OneWay}" FontFamily="{StaticResource SdSans}" FontWeight="Bold" />
+                        <Run Text=" Installer" FontFamily="{StaticResource SdSansLight}" FontWeight="Normal" Foreground="#FFE2E8F0" />
+                    </TextBlock>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button Style="{StaticResource SdGhostButton}" Click="MinimizeButton_Click" ToolTip="Minimize" AutomationProperties.Name="Minimize">
+                        <Path Data="M0,0 L13,0" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Margin="0,8,0,0" />
+                    </Button>
+                    <Button Style="{StaticResource SdCloseButton}" Click="CloseButton_Click" ToolTip="Close" AutomationProperties.Name="Close">
+                        <Path Data="M0,0 L12,12 M12,0 L0,12" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- Body -->
+            <StackPanel Grid.Row="1" Margin="30,0,30,0">
+                <TextBlock Style="{StaticResource SdAccentHeading}" Text="{Binding HeaderMessage}" Margin="0,0,0,14" TextWrapping="Wrap" />
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="12" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="12" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource SdLabel}" Text="Server URL:" />
+                        <Button Style="{StaticResource SdHelpButton}" Click="ShowServerUrlHelp" ToolTip="What is this?" AutomationProperties.Name="Server URL help">
+                            <TextBlock Text="&#xE897;" FontFamily="Segoe MDL2 Assets" FontSize="13" FontWeight="Bold" />
+                        </Button>
+                    </StackPanel>
+                    <Grid Grid.Column="1" Grid.Row="0">
+                        <TextBox Style="{StaticResource SdTextBox}" Text="{Binding ServerUrl}" />
+                        <Path Data="M2,3 H18 V8 H2 Z M2,11 H18 V16 H2 Z M5,5.5 H6 M5,13.5 H6" Stroke="#FF7C93AB" StrokeThickness="1.4"
+                              HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,14,0" IsHitTestVisible="False" Stretch="None" />
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="2" VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource SdLabel}" Text="Organization ID" />
+                        <Button Style="{StaticResource SdHelpButton}" Click="ShowOrganizationIdHelp" ToolTip="What is this?" AutomationProperties.Name="Organization ID help">
+                            <TextBlock Text="&#xE897;" FontFamily="Segoe MDL2 Assets" FontSize="13" FontWeight="Bold" />
+                        </Button>
+                    </StackPanel>
+                    <Grid Grid.Column="1" Grid.Row="2">
+                        <TextBox Style="{StaticResource SdTextBox}" Text="{Binding OrganizationID}" />
+                        <Path Data="M12,9 A4,4 0 1 0 4,9 A4,4 0 1 0 12,9 M12,9 H21 M17,9 V12 M20,9 V11" Stroke="#FF7C93AB" StrokeThickness="1.4"
+                              HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,14,0" IsHitTestVisible="False" Stretch="None" />
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="4" VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource SdLabel}" Text="Support Shortcut" />
+                        <Button Style="{StaticResource SdHelpButton}" Click="ShowSupportShortcutHelp" ToolTip="What is this?" AutomationProperties.Name="Support Shortcut help">
+                            <TextBlock Text="&#xE897;" FontFamily="Segoe MDL2 Assets" FontSize="13" FontWeight="Bold" />
+                        </Button>
+                    </StackPanel>
+                    <CheckBox Grid.Column="1" Grid.Row="4" Style="{StaticResource SdCheckBox}" VerticalAlignment="Center" IsChecked="{Binding CreateSupportShortcut}" />
+                </Grid>
+
+                <Border Margin="0,18,0,0" CornerRadius="12" BorderThickness="1" BorderBrush="#2E38BDF8" Background="#80050A12" Padding="16,12,16,14">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding StatusMessage}" Value="">
+                                    <Setter Property="Visibility" Value="Hidden" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding StatusMessage}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Hidden" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <StackPanel>
+                        <TextBlock TextWrapping="Wrap" Text="{Binding StatusMessage}" FontSize="14" Foreground="#FFE2E8F0" />
+                        <ProgressBar Style="{StaticResource SdProgressBar}" Margin="0,10,0,0" Value="{Binding Progress}"
+                                     Visibility="{Binding IsProgressVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Buttons -->
+            <DockPanel Grid.Row="2" Margin="30,0,30,18" VerticalAlignment="Bottom">
+                <Button DockPanel.Dock="Left" HorizontalAlignment="Left" Style="{StaticResource SdOutlineButton}" Margin="0"
+                        Command="{Binding OpenLogsCommand}">
+                    Logs
+                </Button>
+
+                <Button DockPanel.Dock="Right" HorizontalAlignment="Right" Style="{StaticResource SdNeutralButton}"
+                        Click="CloseButton_Click">
+                    Close
+                </Button>
+                <Button DockPanel.Dock="Right" HorizontalAlignment="Right" Style="{StaticResource SdOutlineButton}"
+                        IsEnabled="{Binding IsReadyState}"
+                        Visibility="{Binding IsServiceInstalled, Converter={StaticResource BooleanToVisibilityConverter}}"
+                        Command="{Binding UninstallCommand}">
+                    Uninstall
+                </Button>
+                <Button DockPanel.Dock="Right" HorizontalAlignment="Right" Style="{StaticResource SdPrimaryButton}"
+                        Content="{Binding InstallButtonText}"
+                        IsEnabled="{Binding IsReadyState}"
+                        Command="{Binding InstallCommand}">
+                </Button>
+                <Grid />
+            </DockPanel>
+        </Grid>
+    </Border>
+</Window>

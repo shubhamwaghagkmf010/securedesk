@@ -1,0 +1,178 @@
+<Window x:Class="Remotely.Desktop.Win.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Remotely.Desktop.Win.Views"
+        xmlns:ViewModels="clr-namespace:Remotely.Desktop.Win.ViewModels"
+        mc:Ignorable="d"
+        Title="{Binding ProductName}" Height="450" Width="500"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        AllowsTransparency="True"
+        Background="Transparent"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown"
+        Closing="Window_Closing"
+        Loaded="Window_Loaded"
+        Icon="{Binding Icon}">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Themes/SecureDeskTheme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Window.DataContext>
+        <ViewModels:MainWindowViewModel />
+    </Window.DataContext>
+
+    <Border x:Name="Frame" Margin="18" CornerRadius="20" BorderThickness="1.6"
+            TextElement.FontFamily="{StaticResource SdSans}" TextElement.Foreground="{StaticResource SdText}" TextElement.FontSize="13"
+            SnapsToDevicePixels="True">
+        <Border.Background>
+            <ImageBrush ImageSource="pack://application:,,,/Assets/client_bg.png" Stretch="UniformToFill" />
+        </Border.Background>
+        <Border.Effect>
+            <DropShadowEffect Color="#06B6D4" BlurRadius="26" ShadowDepth="0" Opacity="0.28" />
+        </Border.Effect>
+        <Border.BorderBrush>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#CC06B6D4" Offset="0" />
+                <GradientStop Color="#CC14B8A6" Offset="0.3" />
+                <GradientStop Color="#CC3B82F6" Offset="0.6" />
+                <GradientStop Color="#CC8B5CF6" Offset="0.8" />
+                <GradientStop Color="#CC06B6D4" Offset="1" />
+                <LinearGradientBrush.RelativeTransform>
+                    <RotateTransform x:Name="BorderRotate" CenterX="0.5" CenterY="0.5" Angle="0" />
+                </LinearGradientBrush.RelativeTransform>
+            </LinearGradientBrush>
+        </Border.BorderBrush>
+        <Border.Triggers>
+            <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                <BeginStoryboard>
+                    <Storyboard RepeatBehavior="Forever">
+                        <DoubleAnimation Storyboard.TargetName="BorderRotate" Storyboard.TargetProperty="Angle"
+                                         From="0" To="360" Duration="0:0:7" />
+                    </Storyboard>
+                </BeginStoryboard>
+            </EventTrigger>
+        </Border.Triggers>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="68" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="52" />
+            </Grid.RowDefinitions>
+
+            <!-- Title bar -->
+            <Grid Grid.Row="0" Margin="24,0,14,0">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Image Source="{Binding Icon}" Width="40" Height="40" RenderOptions.BitmapScalingMode="HighQuality" />
+                    <TextBlock Text="{Binding ProductName}" Margin="14,0,0,0" VerticalAlignment="Center"
+                               FontFamily="{StaticResource SdSans}" FontWeight="Bold" FontSize="23" Foreground="White" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button Style="{StaticResource SdGhostButton}" Click="MinimizeButton_Click" ToolTip="Minimize" AutomationProperties.Name="Minimize">
+                        <Path Data="M0,0 L13,0" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Margin="0,8,0,0" />
+                    </Button>
+                    <Button Style="{StaticResource SdCloseButton}" Click="CloseButton_Click" ToolTip="Close" AutomationProperties.Name="Close">
+                        <Path Data="M0,0 L12,12 M12,0 L0,12" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- Body -->
+            <Grid Grid.Row="1" Margin="28,2,28,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.05*" />
+                    <ColumnDefinition Width="22" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Style="{StaticResource SdHeading}"><Run Text="Share Screen"/></TextBlock>
+                    <TextBlock Style="{StaticResource SdLabel}" Margin="0,16,0,8"><Run Text="Your Session ID:"/></TextBlock>
+                    <TextBox Style="{StaticResource SdSessionBox}" Text="{Binding StatusMessage}" IsReadOnly="True" />
+                    <Grid Margin="0,18,0,0">
+                        <TextBlock Style="{StaticResource SdLabel}" Text="Invite Link:" HorizontalAlignment="Left" />
+                        <Button HorizontalAlignment="Right" Style="{StaticResource SdOutlineButton}" Padding="18,6" Margin="0"
+                                Click="CopyLinkButton_Click" Content="Copy" />
+                    </Grid>
+                </StackPanel>
+
+                <Rectangle Grid.Column="1" Width="1" HorizontalAlignment="Center" Margin="0,8,0,22">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#00FFFFFF" Offset="0" />
+                            <GradientStop Color="#33FFFFFF" Offset="0.5" />
+                            <GradientStop Color="#00FFFFFF" Offset="1" />
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource SdHeading}"><Run Text="Viewers"/></TextBlock>
+                    <Border Margin="0,12,0,0" CornerRadius="12" BorderThickness="1" BorderBrush="#33FFFFFF" Background="#B3050A12">
+                        <StackPanel>
+                            <Grid Margin="10,8,10,6">
+                                <TextBlock Style="{StaticResource SdSmall}" Text="Name" />
+                                <TextBlock Style="{StaticResource SdSmall}" Text="Has Control" HorizontalAlignment="Right" />
+                            </Grid>
+                            <ListBox x:Name="ViewerListBox" Style="{StaticResource SdListBox}" Height="104"
+                                     HorizontalContentAlignment="Stretch" ItemsSource="{Binding Viewers}" SelectionMode="Extended">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <DockPanel>
+                                            <CheckBox DockPanel.Dock="Right" Style="{StaticResource SdCheckBox}" IsChecked="{Binding HasControl}" HorizontalAlignment="Right" />
+                                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                        </DockPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </StackPanel>
+                    </Border>
+                    <Button Style="{StaticResource SdNeutralButton}"
+                            HorizontalAlignment="Right"
+                            Command="{Binding RemoveViewersCommand}"
+                            CommandParameter="{Binding ElementName=ViewerListBox, Path=SelectedItems}"
+                            Margin="0,12,0,0" Padding="22,7"
+                            Content="Remove" />
+                </StackPanel>
+            </Grid>
+
+            <!-- Gear / options -->
+            <Button Grid.Row="2" BorderThickness="0" Background="Transparent" VerticalAlignment="Center" HorizontalAlignment="Left"
+                    Cursor="Hand" Width="34" Height="34" Margin="22,0,0,10" Click="OptionsButton_Click" ToolTip="Options" AutomationProperties.Name="Options">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" CornerRadius="10" Background="Transparent">
+                            <TextBlock x:Name="gl" Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="20"
+                                       Foreground="#FF2DD4BF" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect Color="#14B8A6" BlurRadius="10" ShadowDepth="0" Opacity="0.7" />
+                                </TextBlock.Effect>
+                            </TextBlock>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#2214B8A6" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
+                <Button.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Change Server" Command="{Binding Path=ChangeServerCommand, Source={x:Static ViewModels:MainWindowViewModel.Current}}"></MenuItem>
+
+                        <MenuItem Header="Elevate to Admin" Command="{Binding Path=ElevateToAdminCommand, Source={x:Static ViewModels:MainWindowViewModel.Current}}"></MenuItem>
+                        <MenuItem Header="Elevate to Service" Command="{Binding Path=ElevateToServiceCommand, Source={x:Static ViewModels:MainWindowViewModel.Current}}"></MenuItem>
+                    </ContextMenu>
+                </Button.ContextMenu>
+            </Button>
+        </Grid>
+    </Border>
+</Window>
