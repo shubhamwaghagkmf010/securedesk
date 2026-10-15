@@ -1,0 +1,35 @@
+# SecureDesk with HTTPS:  docker compose up -d
+# Settings come from the .env file (copy .env.example to .env).
+services:
+  securedesk:
+    image: ${SECUREDESK_IMAGE:-shubhamwaghagkmf010/securedesk:latest}
+    container_name: securedesk
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"        # trust the X-Forwarded-* headers from the Caddy container
+      SECUREDESK_SEED_ADMIN: ${SECUREDESK_SEED_ADMIN:-true}
+      SECUREDESK_ADMIN_EMAIL: ${SECUREDESK_ADMIN_EMAIL:-admin@securedesk.local}
+      SECUREDESK_ADMIN_PASSWORD: ${SECUREDESK_ADMIN_PASSWORD:-}
+    volumes:
+      - securedesk-data:/remotely-data
+
+  caddy:
+    image: caddy:2
+    container_name: securedesk-caddy
+    restart: unless-stopped
+    depends_on:
+      - securedesk
+    environment:
+      SECUREDESK_HOST: ${SECUREDESK_HOST:-localhost}
+    ports:
+      - "${SECUREDESK_HTTP_PORT:-80}:80"
+      - "${SECUREDESK_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  securedesk-data:
+  caddy-data:
+  caddy-config:

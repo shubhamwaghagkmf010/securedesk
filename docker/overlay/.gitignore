@@ -1,0 +1,5 @@
+# build output of build/Build-WindowsClients.ps1 (optional, not committed)
+*
+!.gitignore
+!.gitkeep
+!README.md

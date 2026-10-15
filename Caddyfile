@@ -1,0 +1,11 @@
+{
+	# Needed when the site is opened by IP address (browsers send no SNI for IPs).
+	default_sni {$SECUREDESK_HOST:localhost}
+}
+
+# Real domain      -> Caddy gets a public Let's Encrypt certificate automatically (ports 80 and 443 must be reachable).
+# localhost / IP   -> Caddy issues a certificate from its own local CA (see README, "HTTPS").
+{$SECUREDESK_HOST:localhost} {
+	encode gzip
+	reverse_proxy securedesk:5000
+}

@@ -1,0 +1,425 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- SecureDesk dark-glass theme. Shared by the Installer and the Session client windows. -->
+
+    <!-- Palette -->
+    <Color x:Key="SdTealColor">#FF14B8A6</Color>
+    <Color x:Key="SdAquaColor">#FF2DD4BF</Color>
+    <Color x:Key="SdCyanColor">#FF22D3EE</Color>
+    <SolidColorBrush x:Key="SdTeal" Color="#FF14B8A6" />
+    <SolidColorBrush x:Key="SdAqua" Color="#FF2DD4BF" />
+    <SolidColorBrush x:Key="SdCyan" Color="#FF22D3EE" />
+    <SolidColorBrush x:Key="SdText" Color="#FFF1F5F9" />
+    <SolidColorBrush x:Key="SdMuted" Color="#FF94A3B8" />
+    <SolidColorBrush x:Key="SdFieldBg" Color="#B00F172A" />
+    <SolidColorBrush x:Key="SdFieldBorder" Color="#4038BDF8" />
+
+    <!-- Fonts (embedded in the exe) -->
+    <FontFamily x:Key="SdSans">pack://application:,,,/Assets/Fonts/#Plus Jakarta Sans</FontFamily>
+    <FontFamily x:Key="SdSansLight">pack://application:,,,/Assets/Fonts/#Plus Jakarta Sans Light</FontFamily>
+    <FontFamily x:Key="SdMono">pack://application:,,,/Assets/Fonts/#JetBrains Mono</FontFamily>
+
+    <LinearGradientBrush x:Key="SdAccentGradient" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#FF14B8A6" Offset="0" />
+        <GradientStop Color="#FF06B6D4" Offset="0.55" />
+        <GradientStop Color="#FF10B981" Offset="1" />
+    </LinearGradientBrush>
+
+    <!-- Text -->
+    <Style x:Key="SdHeading" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource SdSans}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontSize" Value="19" />
+        <Setter Property="Foreground" Value="{StaticResource SdText}" />
+    </Style>
+    <Style x:Key="SdAccentHeading" TargetType="TextBlock" BasedOn="{StaticResource SdHeading}">
+        <Setter Property="FontSize" Value="21" />
+        <Setter Property="Foreground" Value="{StaticResource SdAqua}" />
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect Color="#14B8A6" BlurRadius="12" ShadowDepth="0" Opacity="0.55" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="SdLabel" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource SdSans}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Foreground" Value="#FFCBD5E1" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style x:Key="SdSmall" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource SdSans}" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="Foreground" Value="{StaticResource SdMuted}" />
+    </Style>
+
+    <!-- Window title buttons -->
+    <Style x:Key="SdGhostButton" TargetType="Button">
+        <Setter Property="Width" Value="34" />
+        <Setter Property="Height" Value="34" />
+        <Setter Property="Margin" Value="4,0,0,0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Foreground" Value="#FFB6C2D2" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="bd" CornerRadius="9" Background="Transparent">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="#2214B8A6" />
+                            <Setter Property="Foreground" Value="White" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="#3314B8A6" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="SdCloseButton" TargetType="Button" BasedOn="{StaticResource SdGhostButton}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="bd" CornerRadius="9" Background="Transparent">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="#33EF4444" />
+                            <Setter Property="Foreground" Value="#FFFCA5A5" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="#55EF4444" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Buttons -->
+    <Style x:Key="SdOutlineButton" TargetType="Button">
+        <Setter Property="FontFamily" Value="{StaticResource SdSans}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="#FF5EEAD4" />
+        <Setter Property="Padding" Value="20,9" />
+        <Setter Property="Margin" Value="8,0,0,0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="bd" CornerRadius="12" BorderThickness="1.3" Padding="{TemplateBinding Padding}"
+                            Background="#660B1220" BorderBrush="#8014B8A6" SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="BorderBrush" Value="#FF2DD4BF" />
+                            <Setter TargetName="bd" Property="Background" Value="#2214B8A6" />
+                            <Setter TargetName="bd" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#14B8A6" BlurRadius="14" ShadowDepth="0" Opacity="0.55" />
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="#4414B8A6" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="SdNeutralButton" TargetType="Button" BasedOn="{StaticResource SdOutlineButton}">
+        <Setter Property="Foreground" Value="#FFE2E8F0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="bd" CornerRadius="12" BorderThickness="1.3" Padding="{TemplateBinding Padding}"
+                            Background="#66101826" BorderBrush="#66CBD5E1" SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="BorderBrush" Value="#FFE2E8F0" />
+                            <Setter TargetName="bd" Property="Background" Value="#22FFFFFF" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="#33FFFFFF" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="SdPrimaryButton" TargetType="Button">
+        <Setter Property="FontFamily" Value="{StaticResource SdSans}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="#FF04121B" />
+        <Setter Property="Padding" Value="24,9" />
+        <Setter Property="Margin" Value="8,0,0,0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="bd" CornerRadius="12" Padding="{TemplateBinding Padding}"
+                            Background="{StaticResource SdAccentGradient}" SnapsToDevicePixels="True">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#14B8A6" BlurRadius="18" ShadowDepth="0" Opacity="0.55" />
+                        </Border.Effect>
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="Opacity" Value="0.88" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="bd" Property="Opacity" Value="0.75" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Small round "help" button next to labels -->
+    <Style x:Key="SdHelpButton" TargetType="Button">
+        <Setter Property="Width" Value="22" />
+        <Setter Property="Height" Value="22" />
+        <Setter Property="Margin" Value="6,0,0,0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Foreground" Value="#FF5EEAD4" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="bd" CornerRadius="11" Background="Transparent">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="#3314B8A6" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Text box -->
+    <Style x:Key="SdTextBox" TargetType="TextBox">
+        <Setter Property="FontFamily" Value="{StaticResource SdMono}" />
+        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="Foreground" Value="{StaticResource SdText}" />
+        <Setter Property="CaretBrush" Value="{StaticResource SdCyan}" />
+        <Setter Property="SelectionBrush" Value="#8014B8A6" />
+        <Setter Property="Padding" Value="12,12,38,12" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="bd" CornerRadius="11" BorderThickness="1.2" Background="{StaticResource SdFieldBg}"
+                            BorderBrush="#6638BDF8" SnapsToDevicePixels="True">
+                        <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="bd" Property="BorderBrush" Value="#FF22D3EE" />
+                            <Setter TargetName="bd" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#22D3EE" BlurRadius="14" ShadowDepth="0" Opacity="0.45" />
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <!-- Big glowing session id -->
+    <Style x:Key="SdSessionBox" TargetType="TextBox">
+        <Setter Property="FontFamily" Value="{StaticResource SdMono}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontSize" Value="21" />
+        <Setter Property="Foreground" Value="{StaticResource SdCyan}" />
+        <Setter Property="IsReadOnly" Value="True" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="TextAlignment" Value="Center" />
+        <Setter Property="Padding" Value="8,12" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border CornerRadius="14" BorderThickness="1.2" BorderBrush="#5522D3EE" SnapsToDevicePixels="True">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#E60F172A" Offset="0" />
+                                <GradientStop Color="#F2030712" Offset="1" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect Color="#22D3EE" BlurRadius="16" ShadowDepth="0" Opacity="0.28" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Check box -->
+    <Style x:Key="SdCheckBox" TargetType="CheckBox">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Foreground" Value="{StaticResource SdText}" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <StackPanel Orientation="Horizontal" Background="Transparent">
+                        <Border x:Name="box" Width="22" Height="22" CornerRadius="7" BorderThickness="1.3"
+                                BorderBrush="#9914B8A6" Background="#55061018" SnapsToDevicePixels="True">
+                            <Path x:Name="tick" Data="M5,11 L9.5,15.5 L17,7" Stroke="#FF2DD4BF" StrokeThickness="2.4"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Visibility="Collapsed"
+                                  Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="-1,-1,0,0" />
+                        </Border>
+                        <ContentPresenter Margin="10,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="tick" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="box" Property="BorderBrush" Value="#FF2DD4BF" />
+                            <Setter TargetName="box" Property="Background" Value="#3314B8A6" />
+                            <Setter TargetName="box" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#14B8A6" BlurRadius="10" ShadowDepth="0" Opacity="0.6" />
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="box" Property="BorderBrush" Value="#FF5EEAD4" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Progress bar -->
+    <Style x:Key="SdProgressBar" TargetType="ProgressBar">
+        <Setter Property="Height" Value="20" />
+        <Setter Property="Foreground" Value="{StaticResource SdAccentGradient}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ProgressBar">
+                    <Grid ClipToBounds="False">
+                        <Border x:Name="PART_Track" CornerRadius="10" BorderThickness="1.2" BorderBrush="#5538BDF8" Background="#CC050A12" />
+                        <Border x:Name="PART_Indicator" HorizontalAlignment="Left" CornerRadius="8" Margin="3"
+                                Background="{StaticResource SdAccentGradient}">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#06B6D4" BlurRadius="14" ShadowDepth="0" Opacity="0.75" />
+                            </Border.Effect>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Viewers list -->
+    <Style x:Key="SdListBox" TargetType="ListBox">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Foreground" Value="{StaticResource SdText}" />
+        <Setter Property="FontFamily" Value="{StaticResource SdSans}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+        <Setter Property="ItemContainerStyle">
+            <Setter.Value>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Padding" Value="10,7" />
+                    <Setter Property="Margin" Value="0,0,0,1" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <Border x:Name="bd" Background="#33162033" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                                    <ContentPresenter />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="bd" Property="Background" Value="#4422324A" />
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="bd" Property="Background" Value="#5514B8A6" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Gear menu -->
+    <Style TargetType="ContextMenu">
+        <Setter Property="Background" Value="#FF0B1220" />
+        <Setter Property="BorderBrush" Value="#8014B8A6" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Foreground" Value="{StaticResource SdText}" />
+        <Setter Property="FontFamily" Value="{StaticResource SdSans}" />
+        <Setter Property="Padding" Value="4" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContextMenu">
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style TargetType="MenuItem">
+        <Setter Property="Foreground" Value="{StaticResource SdText}" />
+        <Setter Property="Padding" Value="12,7" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="MenuItem">
+                    <Border x:Name="bd" CornerRadius="7" Background="Transparent" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="#3314B8A6" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>
