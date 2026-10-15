@@ -70,3 +70,4 @@ Caddyfile text eol=lf
 docker-compose.yml text eol=lf
 .env.example text eol=lf
 .dockerignore text eol=lf
+SecureDesk-Installation.sh -text
