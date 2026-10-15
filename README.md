@@ -3,8 +3,8 @@
 SecureDesk is a self-hosted remote support and remote control platform: unattended access, remote scripting, a web terminal,
 file transfer and browser-based remote desktop, with HTTPS out of the box.
 
-It is a rebranded, packaged distribution of the open-source **[Remotely](https://github.com/immense/Remotely)** project
-(GNU GPL v3, version 2022.08.02.0428). See [NOTICE](NOTICE) and [docs/REBRANDING.md](docs/REBRANDING.md).
+SecureDesk is built on the open-source **[Remotely](https://github.com/immense/Remotely)** project
+(GNU GPL v3, based on version 2022.08.02.0428) with a new look, a ready-to-run Docker setup and HTTPS. See [NOTICE](NOTICE) and [docs/CHANGES.md](docs/CHANGES.md) for what is different.
 
 ---
 
