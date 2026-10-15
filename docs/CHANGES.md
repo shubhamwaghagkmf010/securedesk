@@ -1,4 +1,4 @@
-# What was changed from upstream Remotely
+# SecureDesk: changes from upstream Remotely
 
 Base: Remotely v2022.08.02.0428 (GNU GPL v3).
 
