@@ -40,6 +40,12 @@
     <link rel="stylesheet" href="~/Identity/css/site.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 
+    @{
+        // Name shown big in the middle of every page (editable by server administrators on Server Config).
+        var watermark = System.Text.RegularExpressions.Regex.Replace(AppConfig.WatermarkText ?? string.Empty, @"[^\p{L}\p{N} .,&_-]", string.Empty);
+    }
+    <style>:root { --sd-watermark: "@Html.Raw(watermark)"; }</style>
+
     @if (user is RemotelyUser)
     {
 

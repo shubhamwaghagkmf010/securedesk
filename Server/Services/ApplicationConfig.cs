@@ -34,6 +34,7 @@ namespace Remotely.Server.Services
         string SmtpUserName { get; }
         Theme Theme { get; }
         string[] TrustedCorsOrigins { get; }
+        string WatermarkText { get; }
         bool UseHsts { get; }
         bool UseWebRtc { get; }
     }
@@ -78,6 +79,7 @@ namespace Remotely.Server.Services
         public string SmtpUserName => Config["ApplicationOptions:SmtpUserName"];
         public Theme Theme => Enum.Parse<Theme>(Config["ApplicationOptions:Theme"] ?? "Dark", true);
         public string[] TrustedCorsOrigins => Config.GetSection("ApplicationOptions:TrustedCorsOrigins").Get<string[]>() ?? System.Array.Empty<string>();
+        public string WatermarkText => Config["ApplicationOptions:WatermarkText"] ?? "SecureDesk";
         public bool UseHsts => bool.Parse(Config["ApplicationOptions:UseHsts"] ?? "false");
         public bool UseWebRtc => bool.Parse(Config["ApplicationOptions:UseWebRtc"] ?? "true");
         private IConfiguration Config { get; set; }
