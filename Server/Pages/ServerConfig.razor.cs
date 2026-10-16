@@ -195,6 +195,7 @@ namespace Remotely.Server.Pages
             }
 
             Configuration.Bind("ApplicationOptions", Input);
+            Input.WatermarkText ??= "SecureDesk";
             Configuration.Bind("ConnectionStrings", ConnectionStrings);
             _userList.AddRange(DataService.GetAllUsersForServer().OrderBy(x => x.UserName));
         }
@@ -355,7 +356,7 @@ namespace Remotely.Server.Pages
             }
 
             // Watermark text ends up inside a stylesheet: keep only harmless characters, whatever the form sent.
-            Input.WatermarkText = System.Text.RegularExpressions.Regex.Replace(Input.WatermarkText ?? string.Empty, @"[^\p{L}\p{N} .,&_-]", string.Empty);
+            Input.WatermarkText = System.Text.RegularExpressions.Regex.Replace(Input.WatermarkText ?? "SecureDesk", @"[^\p{L}\p{N} .,&_-]", string.Empty);
             if (Input.WatermarkText.Length > 24)
             {
                 Input.WatermarkText = Input.WatermarkText.Substring(0, 24);
