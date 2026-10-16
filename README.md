@@ -34,14 +34,20 @@ Set `SECUREDESK_SEED_ADMIN=false` if you prefer to create the first account your
 ## Quick start (Docker, with HTTPS)
 
 ```bash
-git clone https://github.com/<your-account>/SecureDesk.git
-cd SecureDesk
+git clone https://github.com/shubhamwaghagkmf010/securedesk.git
+cd securedesk
 cp .env.example .env          # edit SECUREDESK_HOST if needed
 docker compose up -d
 ```
 
 Open `https://localhost` and log in with the default login above.
-The first start downloads the images; `docker compose logs securedesk` shows the line `SecureDesk administrator created`.
+The first start downloads the images and needs about a minute before the page answers; `docker compose logs securedesk` shows the line `SecureDesk administrator created`.
+Your browser will warn about the certificate (it comes from Caddy's own local authority); continue, or trust it as described under [HTTPS](#https).
+
+Good to know:
+* **Port 80 or 443 already in use?** Set `SECUREDESK_HTTP_PORT` / `SECUREDESK_HTTPS_PORT` in `.env` (for example `8080` and `8443`) and open `https://localhost:8443`.
+* **Opening it from another computer?** Put the server's IP address or domain in `SECUREDESK_HOST` in `.env`, then run `docker compose up -d` again.
+* **Run it twice on one machine?** Use a different folder (or `docker compose -p name`) and different ports.
 
 Only the image, without HTTPS (testing only):
 
@@ -107,8 +113,13 @@ the `[code]` identifies your organization, so the installer fills in the Organiz
 ## Build from source
 
 ```bash
+git clone https://github.com/shubhamwaghagkmf010/securedesk.git
+cd securedesk
 docker build -f docker/Dockerfile -t securedesk .
+docker run -d --name securedesk -p 5000:5000 -v securedesk-data:/remotely-data securedesk
+# http://localhost:5000   (same default login)
 ```
+The first build takes several minutes (it downloads the .NET packages).
 The Dockerfile builds the web app from this tree and takes the stock agent packages from the Remotely release it builds on.
 
 ---
