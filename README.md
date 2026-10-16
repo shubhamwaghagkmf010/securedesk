@@ -3,8 +3,10 @@
 SecureDesk is a self-hosted remote support and remote control platform: unattended access, remote scripting, a web terminal,
 file transfer and browser-based remote desktop, with HTTPS out of the box.
 
-SecureDesk is built on the open-source **[Remotely](https://github.com/immense/Remotely)** project
-(GNU GPL v3, based on version 2022.08.02.0428) with a new look, a ready-to-run Docker setup and HTTPS. See [NOTICE](NOTICE) and [docs/CHANGES.md](docs/CHANGES.md) for what is different.
+SecureDesk has its own interface (Aurora Glass themes, colour themes, custom backgrounds, redesigned remote control screen and Windows clients),
+a ready-to-run Docker setup and HTTPS. It builds on the open-source **[Remotely](https://github.com/immense/Remotely)** remote-control engine
+(GNU GPL v3, version 2022.08.02.0428), and keeps that project's license and credits. See [NOTICE](NOTICE) for the credits and
+[docs/CHANGES.md](docs/CHANGES.md) for what SecureDesk adds.
 
 ---
 
@@ -107,7 +109,7 @@ the `[code]` identifies your organization, so the installer fills in the Organiz
 ```bash
 docker build -f docker/Dockerfile -t securedesk .
 ```
-The Dockerfile builds the web app from this tree and takes the stock agent packages from the upstream release this fork is based on.
+The Dockerfile builds the web app from this tree and takes the stock agent packages from the Remotely release it builds on.
 
 ---
 
