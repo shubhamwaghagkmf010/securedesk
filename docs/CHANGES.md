@@ -15,6 +15,13 @@ Base: Remotely v2022.08.02.0428 (GNU GPL v3).
 * Optional server URL built into the clients: `Shared/Models/EmbeddedServer.cs`, set by `build/Build-WindowsClients.ps1 -ServerUrl`.
 * The installer also builds as an SDK-style project (`SecureDesk.Installer.csproj`); the desktop-shortcut COM reference was replaced by the same Windows Script Host object through late binding.
 
+## Server web UI
+* "Aurora Glass" dark theme (Outfit font, soft glass cards, animated background picture) for the dashboard, login page and the remote control (viewer) page.
+* Page watermark text, editable by server administrators only (Server Config); enforced on the server.
+* Six colour themes (palette button, bottom-right of the dashboard; stored per browser) and an administrator-only custom page background upload
+  (PNG/JPG/WEBP up to 6 MB, stored in the data volume under `branding/`; endpoint `/branding/background`).
+* Water-drop ripple on clicks, dark dropdown lists, terminal/quick-scripts dock, redesigned "Disconnected" card with a Reconnect button.
+
 ## Docker
 * `docker/Dockerfile`, `docker/entrypoint.sh` (creates the first administrator), `docker-compose.yml` + `Caddyfile` (HTTPS).
 
