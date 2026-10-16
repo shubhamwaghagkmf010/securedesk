@@ -23,6 +23,12 @@
     <link href="Remotely_Server.styles.css" rel="stylesheet" />
     <script src="~/interop.js"></script>
 
+    @{
+        // Name shown big in the middle of every page (editable by server administrators on Server Config).
+        var watermark = System.Text.RegularExpressions.Regex.Replace(AppConfig.WatermarkText ?? string.Empty, @"[^\p{L}\p{N} .,&_-]", string.Empty);
+    }
+    <style>:root { --sd-watermark: "@Html.Raw(watermark)"; }</style>
+
     @if (user is RemotelyUser)
     {
 
