@@ -3,7 +3,6 @@
 services:
   securedesk:
     image: ${SECUREDESK_IMAGE:-shubhamwaghagkmf010/securedesk:latest}
-    container_name: securedesk
     restart: unless-stopped
     environment:
       ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"        # trust the X-Forwarded-* headers from the Caddy container
@@ -15,7 +14,6 @@ services:
 
   caddy:
     image: caddy:2
-    container_name: securedesk-caddy
     restart: unless-stopped
     depends_on:
       - securedesk
