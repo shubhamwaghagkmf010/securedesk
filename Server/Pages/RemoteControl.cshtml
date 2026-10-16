@@ -8,7 +8,7 @@
 
 <!DOCTYPE html>
 
-<html>
+<html class="@(Remotely.Server.API.BackgroundStorage.Version > 0 ? "sd-custom-bg" : "")">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=0.9, user-scalable=no" />
@@ -68,6 +68,10 @@
         <script src="~/lib/msgpack5/msgpack5.min.js"></script>
         <script src="~/lib/microsoft/signalr-protocol-msgpack/dist/browser/signalr-protocol-msgpack.min.js"></script>
     </environment>
+    @{ var bgVersion = Remotely.Server.API.BackgroundStorage.Version; }
+    <style>:root { @if (bgVersion > 0) { <text>--sd-bg-image: url("/branding/background?v=@bgVersion");</text> } }</style>
+    <script src="~/theme.js"></script>
+    <script src="~/ripple.js" asp-append-version="true" defer></script>
 </head>
 <body>
     <div class="remotely-header" title="SecureDesk">
@@ -226,7 +230,10 @@
     </div>
 
     <div id="disconnectedBox" class="center-connection-box" style="text-align: center; display: none;">
+        <div class="sd-disc-icon"><i class="fas fa-unlink"></i></div>
         <h3>Disconnected from client.</h3>
+        <p class="sd-disc-sub">The remote session has ended. You can start it again from the device list or reconnect now.</p>
+        <button id="reconnectButton" onclick="location.reload()">Reconnect</button>
     </div>
 
 

@@ -12,7 +12,7 @@
 }
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="@(Remotely.Server.API.BackgroundStorage.Version > 0 ? "sd-custom-bg" : "")">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=550, user-scalable=no" />
@@ -27,7 +27,9 @@
         // Name shown big in the middle of every page (editable by server administrators on Server Config).
         var watermark = System.Text.RegularExpressions.Regex.Replace(AppConfig.WatermarkText ?? string.Empty, @"[^\p{L}\p{N} .,&_-]", string.Empty);
     }
-    <style>:root { --sd-watermark: "@Html.Raw(watermark)"; }</style>
+    @{ var bgVersion = Remotely.Server.API.BackgroundStorage.Version; }
+    <style>:root { --sd-watermark: "@Html.Raw(watermark)"; } @if (bgVersion > 0) { <text>html:root { --sd-bg-image: url("/branding/background?v=@bgVersion"); }</text> }</style>
+    <script src="~/theme.js"></script>
 
     @if (user is RemotelyUser)
     {
@@ -60,8 +62,10 @@
         }
     }
 
+    <script src="~/ripple.js" asp-append-version="true" defer></script>
 </head>
 <body>
+    <script>window.SD_ADMIN = @(user?.IsServerAdmin == true ? "true" : "false");</script>
     <component type="typeof(App)" render-mode="ServerPrerendered" />
 
     <div id="blazor-error-ui">
