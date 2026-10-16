@@ -34,6 +34,8 @@ RUN sed -i 's/\r$//' /DockerMain.sh && chmod 755 /DockerMain.sh
 
 ENV ASPNETCORE_URLS=http://*:5000
 ENV ASPNETCORE_ENVIRONMENT=Production
+# settings saved from the web UI live in the data volume behind a symlink: poll so changes are picked up
+ENV DOTNET_USE_POLLING_FILE_WATCHER=true
 
 LABEL org.opencontainers.image.title="SecureDesk"
 LABEL org.opencontainers.image.description="SecureDesk remote support server (rebranded Remotely, GPL-3.0). Default login: admin@securedesk.local / SecureDesk@123 - change it after the first login."
