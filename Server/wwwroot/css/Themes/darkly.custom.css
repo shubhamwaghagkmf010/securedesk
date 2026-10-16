@@ -44,7 +44,8 @@ html::before {
     justify-content: center;
     z-index: -1;
     pointer-events: none;
-    font-size: clamp(64px, 14vw, 220px);
+    font-size: clamp(40px, 8.5vw, 150px);
+    white-space: nowrap;
     font-weight: 800;
     letter-spacing: -0.04em;
     color: rgba(255,255,255,0.045);
