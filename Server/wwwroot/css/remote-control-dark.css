@@ -1,106 +1,264 @@
-﻿body {
-    background-color: #222;
-    color: #888888;
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap");
+
+/* SecureDesk "Aurora Glass" theme for the remote control (viewer) page */
+:root {
+    --sd-bg: #070B16;
+    --sd-glass: rgba(255,255,255,0.06);
+    --sd-glass-strong: rgba(255,255,255,0.11);
+    --sd-border: rgba(255,255,255,0.13);
+    --sd-text: #E8ECF8;
+    --sd-muted: #8A93AD;
+    --sd-teal: #2DD4BF;
+    --sd-violet: #7C6CFF;
+    --sd-grad: linear-gradient(135deg, #2DD4BF, #7C6CFF);
+    color-scheme: dark;
 }
 
+html { background: var(--sd-bg); }
+
+body {
+    font-family: "Outfit", "Segoe UI", system-ui, sans-serif;
+    font-size: 15px;
+    color: var(--sd-text);
+    background: transparent;
+}
+
+/* background picture behind the remote screen, slowly drifting */
+html::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background: var(--sd-bg-image, url("/images/sd_bg.png")) 0% 100% / 118% auto no-repeat;
+    opacity: 0.45;
+    animation: sd-drift 38s ease-in-out infinite alternate;
+}
+@keyframes sd-drift { from { background-position: 0% 100%; } to { background-position: 100% 100%; } }
+@media (prefers-reduced-motion: reduce) { html::after { animation: none; } }
+
+/* buttons */
 button {
-    background-color: rgb(40,40,40);
-    color: white;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--sd-text);
+    background-color: var(--sd-glass);
+    border: 1px solid var(--sd-border);
+    border-radius: 12px;
+    transition: background .2s, border-color .2s, transform .1s;
 }
-
-
-button:hover {
-    background-color: rgb(100,100,100);
-}
-
-button:active {
-    background-color: rgb(80,80,80);
-}
-
+button:hover { background-color: var(--sd-glass-strong); border-color: rgba(var(--sd-teal-rgb),0.55); }
+button:active { transform: translateY(1px); background-color: rgba(var(--sd-teal-rgb),0.18); }
 button.toggled {
-    background-color: rgb(220, 220, 220);
-    color: black;
+    background: var(--sd-grad);
+    border-color: transparent;
+    color: #06121a;
+    font-weight: 600;
 }
+button[disabled] { background-color: rgba(255,255,255,0.03); color: #5d6680; border-color: transparent; cursor: not-allowed; }
 
-button[disabled] {
-    background-color: rgb(90,90,90);
-    color: gray;
-}
-
-
-.menu-options-header {
-    color: lightgray;
-}
-
-#menuButton {
-    color: gray;
-    background-color: rgb(50,50,50);
-}
-#menuButton:hover {
-    color: white;
-}
-
-
+/* side menu */
 #menuFrame {
-    position: absolute;
-    color: white;
-    left: 0;
-    top: 0;
-    height: 100%;
-    background-color: rgb(50,50,50);
-    width: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
-    text-align: center;
-    opacity: 0;
-    z-index: 3;
-    transition: .5s ease all;
+    color: var(--sd-text);
+    background: rgba(10,14,26,0.86);
+    backdrop-filter: blur(16px);
+    border-right: 1px solid var(--sd-border);
+    box-shadow: 8px 0 30px rgba(0,0,0,0.35);
 }
+.menu-options-header {
+    color: var(--sd-teal);
+    font-family: "Outfit", sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+}
+#disconnectButton { border-color: rgba(251,113,133,0.45); color: #fda4af; }
+#disconnectButton:hover { background-color: rgba(251,113,133,0.18); border-color: #FB7185; color: #fff; }
+#menuButton {
+    color: var(--sd-teal);
+    background-color: rgba(10,14,26,0.82);
+    backdrop-filter: blur(10px);
+}
+#menuButton:hover { color: #fff; }
+select.option-button {
+    background-color: #141a2e;
+    color: var(--sd-text);
+    border: 1px solid var(--sd-border);
+    border-radius: 12px;
+    font-family: inherit;
+    padding: 0 8px;
+}
+select option { background-color: #141a2e; color: var(--sd-text); }
 
+/* top bars (screens / clipboard / file transfer) */
 .horizontal-button-bar {
-    background-color: rgb(90, 90, 90);
+    background: rgba(10,14,26,0.88);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--sd-border);
+    border-radius: 16px;
+    box-shadow: 0 14px 40px rgba(0,0,0,0.4);
 }
+.horizontal-button-bar div { color: var(--sd-muted) !important; letter-spacing: .08em; text-transform: uppercase; font-size: 11px !important; }
+.horizontal-button-bar button { letter-spacing: 0; text-transform: none; }
+.horizontal-bar-button { padding: 0 16px; }
 
-
+/* connect / disconnected cards */
 .center-connection-box {
-    background-color: rgb(60, 60, 60);
-    color: white;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--sd-border);
+    border-radius: 22px;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.45);
+    color: var(--sd-text);
+    width: 340px;
+    padding: 6px 28px 26px 28px;
 }
-
-
-.logo-subtitle {
-    color: deepskyblue;
+.center-connection-box h3 { font-weight: 600; font-size: 22px; margin: 22px 0 16px; }
+.center-connection-box label { color: var(--sd-muted); font-size: 13px; letter-spacing: .04em; }
+.center-connection-box input, .modal-prompt input {
+    box-sizing: border-box;
+    height: 42px;
+    margin-top: 6px;
+    padding: 0 14px;
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--sd-text);
+    background: rgba(255,255,255,0.07);
+    border: 1px solid var(--sd-border);
+    border-radius: 12px;
+    outline: none;
 }
-
-.logo-title {
-    color: white;
+.center-connection-box input:focus, .modal-prompt input:focus {
+    border-color: var(--sd-teal);
+    box-shadow: 0 0 0 3px rgba(var(--sd-teal-rgb),0.18);
 }
-
-
-footer a {
-    color: deepskyblue;
+.center-connection-box button {
+    height: 42px;
+    padding: 0 26px;
+    margin-top: 6px;
+    background: var(--sd-grad);
+    border: none;
+    color: #06121a;
+    font-weight: 600;
 }
+.center-connection-box button:hover { filter: brightness(1.08); background: var(--sd-grad); }
 
-
-
-.status-message {
-    color: deepskyblue;
+/* dialogs and messages */
+.modal-prompt {
+    background: rgba(16,21,38,0.96);
+    backdrop-filter: blur(18px);
+    border: 1px solid var(--sd-border);
+    border-radius: 18px;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.5);
+    color: var(--sd-text);
+    padding: 20px 22px;
 }
+.buttons-footer button { width: auto; min-width: 72px; padding: 0 16px; }
+.buttons-footer button:last-child { background: var(--sd-grad); border: none; color: #06121a; font-weight: 600; }
 
 .toast-message {
-    background-color: rgb(50, 50, 50);
-    color: white;
+    background: rgba(16,21,38,0.94);
+    border: 1px solid var(--sd-border);
+    border-left: 3px solid var(--sd-teal);
+    border-radius: 12px;
+    color: var(--sd-text);
+    padding: 12px 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
 }
 
-.modal-prompt {
-    background-color: rgb(60, 60, 60);
-    color: white;
+/* file upload / download progress */
+#fileTransferDiv {
+    background: rgba(10,14,26,0.92);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--sd-border);
+    border-radius: 16px;
+    box-shadow: 0 14px 40px rgba(0,0,0,0.45);
+    color: var(--sd-text);
+    padding: 14px 16px;
+    min-width: 260px;
+}
+#fileTransferNameSpan { display: block; margin-bottom: 8px; font-weight: 500; }
+#fileTransferProgress {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    border: none;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.10);
+}
+#fileTransferProgress::-webkit-progress-bar { background: rgba(255,255,255,0.10); border-radius: 999px; }
+#fileTransferProgress::-webkit-progress-value { background: var(--sd-grad); border-radius: 999px; transition: width .2s; }
+#fileTransferProgress::-moz-progress-bar { background: var(--sd-grad); border-radius: 999px; }
+
+/* misc */
+.logo-title { color: #fff; font-weight: 700; letter-spacing: .02em; }
+.logo-subtitle { color: var(--sd-teal); font-weight: 500; }
+footer a, .status-message { color: var(--sd-teal); }
+#connectionRelayedIcon { background-color: #F59E0B; border-radius: 8px; color: #1a1200; }
+#connectionP2PIcon { background-color: #34D399; border-radius: 8px; color: #04140d; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.16); border-radius: 8px; }
+
+
+/* ===== water-drop ripple on click (see /ripple.js) ===== */
+.sd-ripple { position: absolute; width: 0; height: 0; pointer-events: none; z-index: 5; }
+.sd-ripple i { position: absolute; border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+.sd-ripple .sd-drop {
+    width: 14px; height: 14px;
+    background: radial-gradient(circle, rgba(204,251,241,0.95), rgba(var(--sd-teal-rgb),0.55) 60%, transparent 72%);
+    animation: sd-drop .55s ease-out forwards;
+}
+.sd-ripple .sd-ring {
+    width: var(--sd-ripple-size, 120px); height: var(--sd-ripple-size, 120px);
+    border: 2px solid rgba(var(--sd-teal2-rgb),0.8);
+    background: radial-gradient(circle, transparent 55%, rgba(var(--sd-teal-rgb),0.12) 100%);
+    transform: translate(-50%, -50%) scale(0);
+    animation: sd-ring .85s cubic-bezier(.2,.6,.3,1) forwards;
+}
+.sd-ripple .sd-ring2 { border-color: rgba(var(--sd-violet-rgb),0.7); animation-delay: .14s; animation-duration: .95s; }
+@keyframes sd-drop {
+    0%   { transform: translate(-50%, -50%) scale(.2); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
+}
+@keyframes sd-ring {
+    0%   { transform: translate(-50%, -50%) scale(0); opacity: .95; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
 }
 
-#connectionRelayedIcon {
-    background-color: orange;
-}
 
-#connectionP2PIcon {
-    background-color: green;
+/* ===== colour themes (chosen with the palette button; stored per browser) ===== */
+:root {
+    --sd-teal2: #5EEAD4;
+    --sd-teal-rgb: 45,212,191;
+    --sd-teal2-rgb: 94,234,212;
+    --sd-violet-rgb: 124,108,255;
+    --sd-bg-filter: none;
 }
+html[data-sd-theme="ocean"]    { --sd-bg:#060C1A; --sd-teal:#38BDF8; --sd-teal2:#7DD3FC; --sd-violet:#6366F1; --sd-teal-rgb:56,189,248; --sd-teal2-rgb:125,211,252; --sd-violet-rgb:99,102,241; --sd-grad:linear-gradient(135deg,#38BDF8,#6366F1); --sd-bg-filter:hue-rotate(28deg); }
+html[data-sd-theme="sunset"]   { --sd-bg:#120A0E; --sd-teal:#FB923C; --sd-teal2:#FDBA74; --sd-violet:#F472B6; --sd-teal-rgb:251,146,60; --sd-teal2-rgb:253,186,116; --sd-violet-rgb:244,114,182; --sd-grad:linear-gradient(135deg,#FB923C,#F472B6); --sd-bg-filter:hue-rotate(-150deg) saturate(1.3); }
+html[data-sd-theme="emerald"]  { --sd-bg:#061209; --sd-teal:#34D399; --sd-teal2:#86EFAC; --sd-violet:#A3E635; --sd-teal-rgb:52,211,153; --sd-teal2-rgb:134,239,172; --sd-violet-rgb:163,230,53; --sd-grad:linear-gradient(135deg,#34D399,#A3E635); --sd-bg-filter:hue-rotate(-18deg); }
+html[data-sd-theme="rose"]     { --sd-bg:#10080F; --sd-teal:#FB7185; --sd-teal2:#FDA4AF; --sd-violet:#C084FC; --sd-teal-rgb:251,113,133; --sd-teal2-rgb:253,164,175; --sd-violet-rgb:192,132,252; --sd-grad:linear-gradient(135deg,#FB7185,#C084FC); --sd-bg-filter:hue-rotate(175deg); }
+html[data-sd-theme="graphite"] { --sd-bg:#0B0C10; --sd-teal:#94A3B8; --sd-teal2:#CBD5E1; --sd-violet:#64748B; --sd-teal-rgb:148,163,184; --sd-teal2-rgb:203,213,225; --sd-violet-rgb:100,116,139; --sd-grad:linear-gradient(135deg,#94A3B8,#64748B); --sd-bg-filter:grayscale(1); }
+html::after { filter: var(--sd-bg-filter); }
+
+
+/* ===== v8: uploaded background + nicer "disconnected" card ===== */
+html.sd-custom-bg::after { background-size: cover; background-position: center; animation: none; opacity: 0.55; }
+
+#disconnectedBox { width: 360px; padding: 8px 30px 28px 30px; }
+#disconnectedBox .sd-disc-icon {
+    width: 68px; height: 68px; margin: 24px auto 4px; border-radius: 50%;
+    display: grid; place-items: center; font-size: 26px; color: #FB7185;
+    background: radial-gradient(circle, rgba(251,113,133,0.22), rgba(251,113,133,0.06) 70%);
+    border: 1px solid rgba(251,113,133,0.40);
+    box-shadow: 0 0 40px rgba(251,113,133,0.25);
+    animation: sd-disc-pulse 2.4s ease-in-out infinite;
+}
+@keyframes sd-disc-pulse { 50% { box-shadow: 0 0 56px rgba(251,113,133,0.42); } }
+#disconnectedBox h3 { margin: 16px 0 8px; }
+#disconnectedBox .sd-disc-sub { margin: 0 0 18px; color: var(--sd-muted); font-size: 14px; line-height: 1.5; }
+#disconnectedBox button { width: 100%; }
+html.sd-custom-bg::after { filter: none; }
