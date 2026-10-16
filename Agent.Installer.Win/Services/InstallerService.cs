@@ -26,7 +26,7 @@ namespace Remotely.Agent.Installer.Win.Services
         public event EventHandler<int> ProgressValueChanged;
 
         private string InstallPath => Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), "Program Files", "SecureDesk");
-        // Folder used by builds before the SecureDesk rebrand. Migrated and removed on install / uninstall.
+        // Folder used by earlier builds. Migrated and removed on install / uninstall.
         private string LegacyInstallPath => Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), "Program Files", "Remotely");
         private string Platform => Environment.Is64BitOperatingSystem ? "x64" : "x86";
         private JavaScriptSerializer Serializer { get; } = new JavaScriptSerializer();
@@ -478,7 +478,7 @@ namespace Remotely.Agent.Installer.Win.Services
             }
         }
 
-        // An installation made before the rebrand lives in "Program Files\Remotely" and its service points there.
+        // An installation made by an earlier build lives in "Program Files\Remotely" and its service points there.
         // Keep the device identity (so the device is not duplicated in the dashboard) and recreate the service for the new folder.
         private void MigrateLegacyInstall()
         {
