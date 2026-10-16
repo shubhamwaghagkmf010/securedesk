@@ -96,6 +96,11 @@ namespace Remotely.Server.Pages
         [Display(Name = "SMTP Username")]
         public string SmtpUserName { get; set; }
 
+        [Display(Name = "Page Watermark Text")]
+        [StringLength(24, ErrorMessage = "Use at most 24 characters.")]
+        [RegularExpression(@"^[\p{L}\p{N} .,&_-]*$", ErrorMessage = "Only letters, numbers, spaces and . , & _ - are allowed.")]
+        public string WatermarkText { get; set; }
+
         [Display(Name = "Theme")]
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public Theme Theme { get; set; }
@@ -299,6 +304,12 @@ namespace Remotely.Server.Pages
 
         private async Task Save()
         {
+            // Server-side check: the form is also hidden from non-admins, but never rely on that alone.
+            if (!User.IsServerAdmin)
+            {
+                return;
+            }
+
             var resetEvent = new ManualResetEventSlim();
 
             Configuration.GetReloadToken().RegisterChangeCallback((e) =>
@@ -316,6 +327,11 @@ namespace Remotely.Server.Pages
 
         private async Task SaveAndTestSmtpSettings()
         {
+            if (!User.IsServerAdmin)
+            {
+                return;
+            }
+
             await SaveInputToAppSettings();
 
             var success = await EmailSender.SendEmailAsync(User.Email, "SecureDesk Test Email", "Congratulations! Your SMTP settings are working!", User.OrganizationID);
@@ -333,6 +349,18 @@ namespace Remotely.Server.Pages
 
         private async Task SaveInputToAppSettings()
         {
+            if (!User.IsServerAdmin)
+            {
+                return;
+            }
+
+            // Watermark text ends up inside a stylesheet: keep only harmless characters, whatever the form sent.
+            Input.WatermarkText = System.Text.RegularExpressions.Regex.Replace(Input.WatermarkText ?? string.Empty, @"[^\p{L}\p{N} .,&_-]", string.Empty);
+            if (Input.WatermarkText.Length > 24)
+            {
+                Input.WatermarkText = Input.WatermarkText.Substring(0, 24);
+            }
+
             string savePath;
             var prodSettings = HostEnv.ContentRootFileProvider.GetFileInfo("appsettings.Production.json");
             var stagingSettings = HostEnv.ContentRootFileProvider.GetFileInfo("appsettings.Staging.json");

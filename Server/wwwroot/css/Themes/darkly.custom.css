@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
 
 /* SecureDesk "Aurora Glass" dark theme (loaded after darkly.min.css) */
 :root {
@@ -19,16 +19,13 @@
 /* Customise here: the name shown big in the middle of every page (use "" to hide it)
    and the background picture (replace /images/sd_bg.png or change the url). */
 :root {
-    --sd-watermark: "SecureDesk";
     --sd-bg-image: url("/images/sd_bg.png");
 }
 
-html {
-    background: var(--sd-bg-image) center bottom / cover no-repeat fixed, var(--sd-bg) !important;
-}
+html { background: var(--sd-bg) !important; }
 
 html, body {
-    font-family: "Manrope", "Segoe UI", system-ui, sans-serif !important;
+    font-family: "Outfit", "Segoe UI", system-ui, sans-serif !important;
     color: var(--sd-text);
     font-size: 15px;
     line-height: 1.55;
@@ -38,8 +35,8 @@ html, body {
 body { background: transparent !important; }
 
 /* Brand name in the middle of the page, behind the content */
-body::before {
-    content: var(--sd-watermark);
+html::before {
+    content: var(--sd-watermark, "SecureDesk");
     position: fixed;
     inset: 0;
     display: flex;
@@ -211,3 +208,117 @@ input[type=checkbox], input[type=radio], input[type=range] { accent-color: #2DD4
 .col-md-4 > section h1, .col-md-4 > section h2 { background: var(--sd-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .col-md-4 > section .btn-primary, .col-md-4 > form .btn-primary { width: 100%; height: 46px; }
 footer, .footer { border-top: 1px solid var(--sd-border) !important; background: transparent !important; color: var(--sd-muted) !important; }
+
+/* ===== v2: softer glass, Outfit font, animated background, lamp login ===== */
+
+/* lighter, softer squares */
+.card { background: rgba(255,255,255,0.045) !important; border: 1px solid rgba(255,255,255,0.08) !important; box-shadow: 0 8px 28px rgba(0,0,0,0.18); }
+.card-header { background: rgba(255,255,255,0.03) !important; border-bottom: 1px solid rgba(255,255,255,0.07) !important; }
+.sidebar { background: rgba(255,255,255,0.03) !important; border-right: 1px solid rgba(255,255,255,0.07); }
+.form-control, .custom-select, select.form-control,
+input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=button]):not([type=submit]):not([type=color]), textarea {
+    background-color: rgba(255,255,255,0.07) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+}
+.dropdown-menu { background: rgba(26,32,52,0.94) !important; }
+.modal-content { background: rgba(22,28,46,0.97) !important; }
+.btn-secondary, .btn-outline-secondary, .btn-light { background: rgba(255,255,255,0.08) !important; border: 1px solid rgba(255,255,255,0.12) !important; }
+.table-striped tbody tr:nth-of-type(odd) { background: rgba(255,255,255,0.02); }
+
+/* Background picture: smaller, bottom-right, soft edges, aspect ratio kept, slow drift */
+html::after {
+    content: "";
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    width: clamp(420px, 62vw, 1000px);
+    aspect-ratio: 920 / 820;
+    z-index: -2;
+    pointer-events: none;
+    background: var(--sd-bg-image) center / 100% 100% no-repeat;
+    -webkit-mask-image: linear-gradient(to top, #000 55%, transparent 100%), linear-gradient(to left, #000 55%, transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-image: linear-gradient(to top, #000 55%, transparent 100%), linear-gradient(to left, #000 55%, transparent 100%);
+    mask-composite: intersect;
+    opacity: 0.9;
+    animation: sd-drift 40s ease-in-out infinite alternate;
+}
+@keyframes sd-drift {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-4%); }
+}
+@media (max-width: 700px) {
+    html::after { width: 130vw; opacity: 0.7; }
+}
+
+/* ===== Login page: lamp, light cone and fireflies ===== */
+body:has(#account)::before {
+    content: "";
+    inset: 0;
+    z-index: -1;
+    font-size: 0;
+    opacity: 1;
+    -webkit-text-fill-color: initial;
+    background-color: transparent;
+    -webkit-background-clip: border-box;
+    background-clip: border-box;
+    background-image:
+        radial-gradient(circle, rgba(94,234,212,0.95) 0 1.6px, transparent 2.6px),
+        radial-gradient(circle, rgba(153,246,228,0.80) 0 1.2px, transparent 2.2px),
+        radial-gradient(circle, rgba(124,108,255,0.85) 0 1.4px, transparent 2.4px);
+    background-size: 330px 280px, 470px 390px, 610px 520px;
+    background-position: 20px 40px, 150px 200px, 300px 90px;
+    animation: sd-fireflies 46s linear infinite;
+}
+@keyframes sd-fireflies {
+    to { background-position: 20px -240px, 150px -190px, 300px -430px; }
+}
+
+body:has(#account)::after {
+    content: "";
+    position: fixed;
+    left: 5vw;
+    top: 0;
+    width: min(520px, 46vw);
+    height: 100vh;
+    z-index: -1;
+    pointer-events: none;
+    transform-origin: 50% 0;
+    animation: sd-sway 7s ease-in-out infinite alternate;
+    background:
+        radial-gradient(circle 34px at 50% calc(22vh + 30px), rgba(204,251,241,0.95), rgba(45,212,191,0.0) 100%),
+        radial-gradient(ellipse 78px 36px at 50% calc(22vh + 6px), #323a4d 0 96%, transparent 100%),
+        linear-gradient(#4b5468, #4b5468) 50% 0 / 2px 22vh no-repeat,
+        conic-gradient(from 150deg at 50% calc(22vh + 30px), rgba(45,212,191,0) 0deg, rgba(45,212,191,0.34) 30deg, rgba(45,212,191,0.34) 30deg, rgba(45,212,191,0) 60deg, transparent 60deg);
+    -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 34%, rgba(0,0,0,0.0) 96%);
+    mask-image: linear-gradient(to bottom, #000 0, #000 34%, rgba(0,0,0,0.0) 96%);
+    filter: drop-shadow(0 0 28px rgba(45,212,191,0.28));
+}
+@keyframes sd-sway {
+    from { transform: rotate(-1.6deg); }
+    to   { transform: rotate(1.6deg); }
+}
+
+/* login card sits on the right, soft glass */
+body:has(#account) .container { max-width: 1180px; }
+body:has(#account) .row { justify-content: flex-end; }
+body:has(#account) .col-md-4 { flex: 0 0 420px; max-width: 100%; }
+body:has(#account) .col-md-4 > section {
+    background: rgba(255,255,255,0.055);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 24px;
+    padding: 34px;
+    margin-top: 2.5rem;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.30);
+    backdrop-filter: blur(18px);
+}
+body:has(#account) main > h1, body:has(#account) h1 { text-align: right; font-weight: 600; }
+body:has(#account) .btn-primary { height: 48px; font-weight: 600; letter-spacing: 0.01em; }
+
+@media (prefers-reduced-motion: reduce) {
+    html::after, body::before, body::after { animation: none !important; }
+}
+@media (max-width: 860px) {
+    body:has(#account)::after { opacity: 0.55; left: -10vw; }
+    body:has(#account) .row { justify-content: center; }
+}

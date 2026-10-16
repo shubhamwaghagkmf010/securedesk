@@ -293,6 +293,14 @@
                     <button id="sendTestEmailButton" type="button" class="btn btn-secondary" @onclick="SaveAndTestSmtpSettings">Test</button>
                 </div>
                 <div class="form-group">
+                    <label class="control-label">Page Watermark Text</label>
+                    <br />
+                    <InputText @bind-Value="Input.WatermarkText" class="form-control" autocomplete="off" maxlength="24" placeholder="SecureDesk" />
+                    <small class="text-muted">Shown big in the middle of every page. Leave empty to hide it. Server administrators only.</small>
+                    <br />
+                    <ValidationMessage For="() => Input.WatermarkText" />
+                </div>
+                <div class="form-group">
                     <label class="control-label">Theme</label>
                     <br />
                     <select class="form-control" @bind="Input.Theme">
