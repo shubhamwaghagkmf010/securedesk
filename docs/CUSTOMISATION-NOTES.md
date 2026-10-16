@@ -1,7 +1,7 @@
-# SecureDesk rebranding notes
+# SecureDesk customisation notes
 
-SecureDesk is a rebranded build of **Remotely v2022.08.02.0428** (MIT License, (c) Translucency Software / Immense Networks).
-The upstream LICENSE file is kept unchanged, as the MIT License requires.
+SecureDesk builds on **Remotely v2022.08.02.0428** (GNU GPL v3, (c) Translucency Software / Immense Networks).
+The upstream LICENSE file is kept unchanged, as the license requires.
 
 ## What was changed (user-facing only)
 - Page titles, header/nav, home page, About/Credits, remote-control page title and header, PWA manifests,

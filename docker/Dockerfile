@@ -2,7 +2,7 @@
 # Build from the repository root:   docker build -f docker/Dockerfile -t securedesk .
 #
 # Stage 1 builds the web app from this source tree.
-# Stage 2 fetches the stock agent packages (Content folder) of the upstream release this fork is based on.
+# Stage 2 fetches the stock agent packages (Content folder) of the Remotely release SecureDesk builds on.
 # docker/overlay/Content (optional) is copied on top: the Windows session clients and installer built by
 # build/Build-WindowsClients.ps1 (they carry the SecureDesk look and can have your server URL built in).
 
@@ -38,7 +38,7 @@ ENV ASPNETCORE_ENVIRONMENT=Production
 ENV DOTNET_USE_POLLING_FILE_WATCHER=true
 
 LABEL org.opencontainers.image.title="SecureDesk"
-LABEL org.opencontainers.image.description="SecureDesk remote support server (rebranded Remotely, GPL-3.0). Default login: admin@securedesk.local / SecureDesk@123 - change it after the first login."
+LABEL org.opencontainers.image.description="SecureDesk remote support server (built on the open-source Remotely project, GPL-3.0). Default login: admin@securedesk.local / SecureDesk@123 - change it after the first login."
 LABEL org.opencontainers.image.licenses="GPL-3.0-only"
 LABEL securedesk.default-login="admin@securedesk.local / SecureDesk@123"
 

@@ -1,8 +1,8 @@
-# SecureDesk: changes from upstream Remotely
+# What SecureDesk adds to Remotely
 
-Base: Remotely v2022.08.02.0428 (GNU GPL v3).
+Builds on Remotely v2022.08.02.0428 (GNU GPL v3).
 
-## Branding (user visible)
+## Look and branding (user visible)
 * Name, logo and images (`Server/wwwroot/images/SecureDesk_*`), page titles, navigation, About page (with attribution), manifests, e-mail texts, Swagger title.
 * Default product name `SecureDesk` (`Shared/Utilities/AppConstants.cs`, `Shared/Models/BrandingInfo.cs`).
 * Download names: `SecureDesk_Desktop-[code].exe`, `SecureDesk_Install-[code].exe` (`Server/API/ClientDownloadsController.cs`).
