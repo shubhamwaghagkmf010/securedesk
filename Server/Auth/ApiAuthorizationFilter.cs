@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Remotely.Server.Services;
 using System;
@@ -65,6 +66,17 @@ namespace Remotely.Server.Auth
                         break;
                 }
 
+            }
+
+            // A person who opens an API link in the browser (not a script with an API key) is sent to the login page
+            // and brought back afterwards, instead of seeing a bare 401 JSON message.
+            var request = context.HttpContext.Request;
+            if (HttpMethods.IsGet(request.Method) && !request.Headers.ContainsKey("Authorization") &&
+                request.Headers.Accept.ToString().Contains("text/html", StringComparison.OrdinalIgnoreCase))
+            {
+                var returnUrl = Uri.EscapeDataString(request.Path + request.QueryString);
+                context.Result = new RedirectResult($"/Identity/Account/Login?ReturnUrl={returnUrl}");
+                return;
             }
 
             context.Result = new UnauthorizedResult();
