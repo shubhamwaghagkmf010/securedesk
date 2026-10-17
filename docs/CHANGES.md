@@ -21,6 +21,8 @@ Builds on Remotely v2022.08.02.0428 (GNU GPL v3).
 * Six colour themes (palette button, bottom-right of the dashboard; stored per browser) and an administrator-only custom page background upload
   (PNG/JPG/WEBP up to 6 MB, stored in the data volume under `branding/`; endpoint `/branding/background`).
 * Water-drop ripple on clicks, dark dropdown lists, terminal/quick-scripts dock, redesigned "Disconnected" card with a Reconnect button.
+* Login page: a dark room with a lamp; pulling the cord (click, drag or Enter) switches the light, the login card and the fireflies on (`Server/wwwroot/lamp.js`).
+* Opening an installer link (`/API/ClientDownloads/...`) in a browser without being logged in now leads to the login page instead of a bare 401 message; scripts using API keys still get 401.
 
 ## Docker
 * `docker/Dockerfile`, `docker/entrypoint.sh` (creates the first administrator), `docker-compose.yml` + `Caddyfile` (HTTPS).

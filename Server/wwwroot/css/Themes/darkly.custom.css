@@ -454,3 +454,61 @@ html.sd-custom-bg::before { opacity: 0.18; }
 #sdPalette .sd-pal-note { font-size: 11px; color: var(--sd-muted); margin-top: 8px; min-height: 14px; }
 @media (max-width: 641px) { #sdPalette { bottom: 76px; right: 12px; } }
 html.sd-custom-bg::after { filter: none; }
+
+
+/* ===== Login lamp scene (lamp.js): dark room, pull the cord to switch on light + card + fireflies ===== */
+body.sd-lamp-page:has(#account)::before, body.sd-lamp-page:has(#account)::after { content: none !important; display: none !important; }
+body.sd-lamp-page .container, body.sd-lamp-page nav.navbar { position: relative; z-index: 3; }
+
+.sd-lamp-scene { position: fixed; inset: 0; z-index: 4; pointer-events: none; overflow: hidden; --sd-lamp-x: clamp(70px, 17vw, 330px); --sd-lamp-top: 22vh; --sd-warm: 255, 214, 110; }
+.sd-room { position: fixed; inset: 0; z-index: 2; pointer-events: none; background: radial-gradient(ellipse at 24% 40%, rgba(4,6,12,0.78), rgba(3,4,9,0.93) 70%); transition: background 1.1s ease; }
+body.sd-lamp-on .sd-room { background: radial-gradient(ellipse at 24% 42%, rgba(var(--sd-warm),0.10), rgba(4,6,12,0.52) 62%, rgba(3,4,9,0.72) 100%); }
+
+.sd-lamp { position: absolute; left: var(--sd-lamp-x); top: var(--sd-lamp-top); width: 0; height: calc(100vh - var(--sd-lamp-top) - 9vh); }
+.sd-shade { position: absolute; left: -58px; top: 0; width: 116px; height: 50px; border-radius: 58px 58px 4px 4px / 50px 50px 4px 4px; background: linear-gradient(#2c303d, #14171f); box-shadow: inset 0 3px 6px rgba(255,255,255,0.06), 0 6px 18px rgba(0,0,0,0.5); transition: background 0.9s, box-shadow 0.9s; }
+body.sd-lamp-on .sd-shade { background: linear-gradient(#3a3e4b, #1a1d26); box-shadow: inset 0 3px 6px rgba(255,255,255,0.10), 0 0 30px rgba(var(--sd-warm),0.25); }
+.sd-bulb { position: absolute; left: -22px; top: 47px; width: 44px; height: 8px; border-radius: 0 0 22px 22px; background: #3a3f4d; transition: background 0.8s, box-shadow 0.8s; }
+body.sd-lamp-on .sd-bulb { background: #fff4c4; box-shadow: 0 0 18px 6px rgba(var(--sd-warm),0.9), 0 0 60px 20px rgba(var(--sd-warm),0.45); }
+.sd-pole { position: absolute; left: -2px; top: 40px; width: 4px; bottom: 6px; background: linear-gradient(90deg, #1b1e27, #3b4050, #1b1e27); border-radius: 2px; }
+.sd-base { position: absolute; left: -36px; bottom: 0; width: 72px; height: 11px; border-radius: 40px / 7px; background: linear-gradient(#323645, #14161d); box-shadow: 0 6px 14px rgba(0,0,0,0.6); }
+
+.sd-cone { position: absolute; left: -270px; top: 54px; width: 540px; bottom: 4px; opacity: 0; transition: opacity 0.9s ease; filter: blur(7px); }
+.sd-cone::before { content: ""; position: absolute; inset: 0; clip-path: polygon(41% 0, 59% 0, 100% 100%, 0 100%);
+    background: linear-gradient(to bottom, rgba(var(--sd-warm),0.70), rgba(var(--sd-warm),0.26) 50%, rgba(var(--sd-warm),0.07)); }
+body.sd-lamp-on .sd-cone { opacity: 1; animation: sd-flicker 5s ease-in-out infinite alternate 1s; }
+@keyframes sd-flicker { from { opacity: 1; } 50% { opacity: 0.93; } to { opacity: 1; } }
+.sd-pool { position: absolute; left: -210px; bottom: -8px; width: 420px; height: 36px; border-radius: 50%; background: radial-gradient(ellipse, rgba(var(--sd-warm),0.55), transparent 70%); opacity: 0; transition: opacity 0.9s ease; }
+body.sd-lamp-on .sd-pool { opacity: 1; }
+
+/* the pull cord */
+.sd-cord { --pull: 0px; position: absolute; left: 44px; top: 30px; width: 18px; pointer-events: auto; }
+.sd-cord-line { position: absolute; left: 8px; top: 0; width: 2px; height: calc(70px + var(--pull)); background: linear-gradient(#59607a, #8b93ab); transition: height 0.38s cubic-bezier(.3,1.8,.5,1); border-radius: 1px; }
+.sd-bead { position: absolute; left: 3px; top: calc(70px + var(--pull)); width: 12px; height: 20px; padding: 0; border: 0; border-radius: 6px 6px 8px 8px; cursor: grab; transition: top 0.38s cubic-bezier(.3,1.8,.5,1), box-shadow 0.5s;
+    background: linear-gradient(135deg, #ffe58a, #e0a81b); box-shadow: 0 0 6px rgba(255,200,60,0.45); pointer-events: auto; touch-action: none; }
+.sd-bead::before { content: ""; position: absolute; inset: -12px -14px; }
+.sd-bead:hover, .sd-bead:focus-visible { box-shadow: 0 0 0 3px rgba(255,214,110,0.30), 0 0 14px rgba(255,200,60,0.8); outline: none; }
+body.sd-lamp-on .sd-bead { box-shadow: 0 0 10px rgba(255,214,110,0.85); }
+.sd-cord.sd-drag .sd-cord-line, .sd-cord.sd-drag .sd-bead { transition: none; cursor: grabbing; }
+.sd-hint { position: absolute; left: 70px; top: 100px; font: 500 12px/1 'Outfit', sans-serif; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,226,150,0.8); white-space: nowrap; animation: sd-hint 2.2s ease-in-out infinite; transition: opacity 0.5s; }
+body.sd-lamp-on .sd-hint { opacity: 0 !important; animation: none; }
+@keyframes sd-hint { 0%,100% { opacity: 0.35; transform: translateX(0); } 50% { opacity: 1; transform: translateX(4px); } }
+
+/* fireflies, only while the light is on */
+.sd-fireflies { position: absolute; inset: 0; opacity: 0; transition: opacity 1.2s ease 0.3s; }
+body.sd-lamp-on .sd-fireflies { opacity: 1; }
+.sd-ff { position: absolute; border-radius: 50%; background: #ffe27a; box-shadow: 0 0 8px 2px rgba(255,214,90,0.75); animation: sd-ff-move 9s ease-in-out infinite alternate, sd-ff-twinkle 3s ease-in-out infinite; }
+@keyframes sd-ff-move { to { transform: translate(var(--dx), var(--dy)); } }
+@keyframes sd-ff-twinkle { 0%,100% { opacity: 0.15; } 50% { opacity: 1; } }
+
+/* the login card and heading appear with the light */
+body.sd-lamp-page .col-md-4 > section, body.sd-lamp-page h1 { transition: opacity 0.9s ease 0.25s, transform 0.9s ease 0.25s, filter 0.9s ease 0.25s; }
+body.sd-lamp-page:not(.sd-lamp-on) .col-md-4 > section, body.sd-lamp-page:not(.sd-lamp-on) h1 { opacity: 0; transform: translateY(18px) scale(0.98); filter: blur(8px); pointer-events: none; transition-delay: 0s; }
+body.sd-lamp-page .col-md-4 > section { background: rgba(28,26,22,0.46); border-color: rgba(255,226,150,0.14); }
+
+@media (max-width: 860px) {
+    .sd-lamp-scene { --sd-lamp-x: 22vw; --sd-lamp-top: 16vh; }
+    body.sd-lamp-on .sd-cone { opacity: 0.55; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .sd-ff, .sd-cone, .sd-hint { animation: none !important; }
+}
