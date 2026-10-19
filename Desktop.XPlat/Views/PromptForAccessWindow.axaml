@@ -6,7 +6,7 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Remotely.Desktop.XPlat.Views.PromptForAccessWindow"
         HasSystemDecorations="False"
-        BorderBrush="DimGray"
+        BorderBrush="#5514B8A6"
         BorderThickness="1"
         Title="Remote Control Request" 
         MinHeight="200"
@@ -26,7 +26,7 @@
       <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
 
-    <Border Name="TitleBanner" Height="50" Background="{Binding TitleBackgroundColor}">
+    <Border Name="TitleBanner" Height="50" Background="#E00B1424" BorderBrush="#4014B8A6" BorderThickness="0,0,0,1">
       <Grid Margin="10,4,0,0">
 
         <Grid.ColumnDefinitions>
@@ -37,21 +37,21 @@
         </Grid.ColumnDefinitions>
         
         <Image Grid.Column="0" Height="50" Width="50" Source="{Binding Icon}" Margin="0,0,10,0"></Image>
-        <TextBlock Grid.Column="1" Text="Remote Control Request" Foreground="{Binding TitleForegroundColor}"  FontWeight="Bold" FontSize="20" VerticalAlignment="Center" />
-        <Button Grid.Column="2" Classes="TitlebarButton" Foreground="{Binding TitleButtonForegroundColor}"  Background="{Binding TitleBackgroundColor}" Command="{Binding MinimizeCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}" Content="__"/>
-        <Button Grid.Column="3" Classes="TitlebarButton" Foreground="{Binding TitleButtonForegroundColor}"  Background="{Binding TitleBackgroundColor}" Command="{Binding CloseCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}" Content="X" />
+        <TextBlock Grid.Column="1" Text="Remote Control Request" Foreground="#F1F5F9"  FontWeight="Bold" FontSize="20" VerticalAlignment="Center" />
+        <Button Grid.Column="2" Classes="TitlebarButton" Foreground="#CBD5E1"  Background="Transparent" Command="{Binding MinimizeCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}" Content="__"/>
+        <Button Grid.Column="3" Classes="TitlebarButton" Foreground="#CBD5E1"  Background="Transparent" Command="{Binding CloseCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}" Content="X" />
       </Grid>
     </Border>
 
     <StackPanel Grid.Row="1">
-      <TextBlock Classes="SectionHeader"  FontWeight="Bold" FontSize="18" Foreground="DimGray" Margin="10" TextWrapping="Wrap">
+      <TextBlock Classes="SectionHeader"  FontWeight="Bold" FontSize="18" Foreground="#CBD5E1" Margin="10" TextWrapping="Wrap">
         A remote control session has been requested.
       </TextBlock>
 
       <TextBlock Classes="SectionHeader"
                  FontWeight="Bold"
                  FontSize="18"
-                 Foreground="DimGray"
+                 Foreground="#CBD5E1"
                  Margin="10"
                  TextWrapping="Wrap"
                  Text="{Binding RequestMessage}"></TextBlock>

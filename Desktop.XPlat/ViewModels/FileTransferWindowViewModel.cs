@@ -46,7 +46,7 @@ namespace Remotely.Desktop.XPlat.ViewModels
 
             var ofd = new OpenFileDialog
             {
-                Title = "Upload File via Remotely",
+                Title = "Upload File via SecureDesk",
                 AllowMultiple = true,
                 Directory = initialDir
             };

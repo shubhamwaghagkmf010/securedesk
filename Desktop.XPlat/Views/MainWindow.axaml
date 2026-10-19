@@ -12,7 +12,7 @@
     </Window.DataContext>
     <Grid>
         <StackPanel>
-          <Border Name="TitleBanner" Height="50" Background="{Binding TitleBackgroundColor}">
+          <Border Name="TitleBanner" Height="50" Background="#E00B1424" BorderBrush="#4014B8A6" BorderThickness="0,0,0,1">
             <Grid Margin="10,4,0,0">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -22,9 +22,9 @@
               </Grid.ColumnDefinitions>
 
               <Image Grid.Column="0" Height="45" Width="45" Source="{Binding Icon}" Margin="0,0,10,0"></Image>
-              <TextBlock Grid.Column="1" Text="{Binding ProductName}" Foreground="{Binding TitleForegroundColor}" FontWeight="Bold" FontSize="20" VerticalAlignment="Center" />
-              <Button Grid.Column="2" Classes="TitlebarButton" Foreground="{Binding TitleButtonForegroundColor}" Background="{Binding TitleBackgroundColor}" Command="{Binding MinimizeCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}" Content="__"/>
-              <Button Grid.Column="3" Classes="TitlebarButton" Foreground="{Binding TitleButtonForegroundColor}" Background="{Binding TitleBackgroundColor}" Command="{Binding CloseCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}" Content="X" />
+              <TextBlock Grid.Column="1" Text="{Binding ProductName}" Foreground="#F1F5F9" FontWeight="Bold" FontSize="20" VerticalAlignment="Center" />
+              <Button Grid.Column="2" Classes="TitlebarButton" Foreground="#CBD5E1" Background="Transparent" Command="{Binding MinimizeCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}" Content="__"/>
+              <Button Grid.Column="3" Classes="TitlebarButton" Foreground="#CBD5E1" Background="Transparent" Command="{Binding CloseCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}" Content="X" />
             </Grid>
           </Border>
             <Grid Margin="10,15,10,0">
@@ -44,7 +44,7 @@
                             Copy
                         </Button>
                     </Grid>
-                    <TextBlock Margin="0,10,0,0" Foreground="DodgerBlue" IsVisible="{Binding IsCopyMessageVisible}" Opacity="{Binding CopyMessageOpacity}" HorizontalAlignment="Right">Copied to clipboard!</TextBlock>
+                    <TextBlock Margin="0,10,0,0" Foreground="#2DD4BF" IsVisible="{Binding IsCopyMessageVisible}" Opacity="{Binding CopyMessageOpacity}" HorizontalAlignment="Right">Copied to clipboard!</TextBlock>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Margin="15,0,0,0">
                     <TextBlock Classes="SectionHeader">Viewers</TextBlock>

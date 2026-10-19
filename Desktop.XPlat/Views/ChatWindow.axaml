@@ -8,7 +8,7 @@
         x:Class="Remotely.Desktop.XPlat.Views.ChatWindow"
         Icon="{Binding WindowIcon}"
         HasSystemDecorations="False"
-        BorderBrush="DimGray"
+        BorderBrush="#5514B8A6"
         BorderThickness="1"
         MinHeight="250"
         MinWidth="200"
@@ -25,7 +25,7 @@
       <RowDefinition />
     </Grid.RowDefinitions>
     
-    <Border Name="TitleBanner" Height="50" Background="{Binding TitleBackgroundColor}">
+    <Border Name="TitleBanner" Height="50" Background="#E00B1424" BorderBrush="#4014B8A6" BorderThickness="0,0,0,1">
         <Grid Margin="10,4,0,0">
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
@@ -37,17 +37,17 @@
           </Grid.ColumnDefinitions>
           
           <Image Grid.Column="0" Height="50" Width="50" Source="{Binding Icon}" Margin="0,0,10,0"></Image>
-          <TextBlock Grid.Column="1" Text="{Binding ProductName}" Foreground="{Binding TitleForegroundColor}" FontWeight="Bold" FontSize="20" VerticalAlignment="Center" />
-          <TextBlock Grid.Column="2" Text=" Chat"  Foreground="{Binding TitleForegroundColor}" FontWeight="Bold" FontSize="20" VerticalAlignment="Center" />
-          <Button Grid.Column="4" Classes="TitlebarButton" Foreground="{Binding TitleButtonForegroundColor}" Background="{Binding TitleBackgroundColor}" Command="{Binding MinimizeCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}" Content="__"/>
-          <Button Grid.Column="5" Classes="TitlebarButton" Foreground="{Binding TitleButtonForegroundColor}" Background="{Binding TitleBackgroundColor}" Command="{Binding CloseCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}" Content="X" />
+          <TextBlock Grid.Column="1" Text="{Binding ProductName}" Foreground="#F1F5F9" FontWeight="Bold" FontSize="20" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="2" Text=" Chat"  Foreground="#F1F5F9" FontWeight="Bold" FontSize="20" VerticalAlignment="Center" />
+          <Button Grid.Column="4" Classes="TitlebarButton" Foreground="#CBD5E1" Background="Transparent" Command="{Binding MinimizeCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}" Content="__"/>
+          <Button Grid.Column="5" Classes="TitlebarButton" Foreground="#CBD5E1" Background="Transparent" Command="{Binding CloseCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}" Content="X" />
         </Grid>
     </Border>
 
     <TextBlock Grid.Row="1" 
                Text="{Binding ChatSessionHeader}"
                FontWeight="Bold" 
-               Foreground="DimGray" 
+               Foreground="#CBD5E1" 
                Margin="10,10,10,0" 
                TextWrapping="Wrap">
     </TextBlock>
@@ -59,7 +59,7 @@
                 <RowDefinition Height="50" />
             </Grid.RowDefinitions>
           
-            <Border BorderBrush="Gray" BorderThickness="1" Margin="5">
+            <Border BorderBrush="#3338BDF8" BorderThickness="1" Margin="5">
                 <ScrollViewer x:Name="MessagesScrollViewer">
                     <ItemsControl x:Name="MessagesListBox" Items="{Binding ChatMessages}">
                       <ItemsControl.ItemTemplate>

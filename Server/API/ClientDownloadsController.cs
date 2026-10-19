@@ -128,7 +128,31 @@ namespace Remotely.Server.API
             fileContents[hostIndex] = $"HostName=\"{scheme}://{Request.Host}\"";
             fileContents[orgIndex] = $"Organization=\"{organizationId}\"";
             var fileBytes = Encoding.UTF8.GetBytes(string.Join("\n", fileContents));
-            return File(fileBytes, "application/octet-stream", fileName);
+            return File(fileBytes, "application/octet-stream", fileName.Replace("Install-", "SecureDesk_Install-"));
+        }
+
+        // Agent packages ("files only" downloads). The files on disk keep the names the agents and install scripts
+        // request; people get them under SecureDesk names.
+        [HttpGet("package/{platform}")]
+        public IActionResult GetPackage(string platform)
+        {
+            string diskName, downloadName;
+            switch (platform)
+            {
+                case "Linux": diskName = "Remotely-Linux.zip"; downloadName = "SecureDesk-Linux.zip"; break;
+                case "MacOS-x64": diskName = "Remotely-MacOS-x64.zip"; downloadName = "SecureDesk-MacOS-x64.zip"; break;
+                case "MacOS-arm64": diskName = "Remotely-MacOS-arm64.zip"; downloadName = "SecureDesk-MacOS-arm64.zip"; break;
+                case "Win10-x64": diskName = "Remotely-Win10-x64.zip"; downloadName = "SecureDesk-Win10-x64.zip"; break;
+                case "Win10-x86": diskName = "Remotely-Win10-x86.zip"; downloadName = "SecureDesk-Win10-x86.zip"; break;
+                default: return NotFound();
+            }
+
+            var filePath = Path.Combine(_hostEnv.WebRootPath, "Content", diskName);
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound();
+            }
+            return PhysicalFile(filePath, "application/zip", downloadName, enableRangeProcessing: true);
         }
 
         private async Task<IActionResult> GetDesktopFile(string filePath, string organizationId = null)
