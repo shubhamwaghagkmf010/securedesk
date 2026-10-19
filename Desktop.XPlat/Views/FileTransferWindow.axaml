@@ -32,7 +32,7 @@
       Current Uploads:
     </TextBlock>
 
-    <Border Grid.Row="2" Margin="0,5,0,0" BorderBrush="LightGray" BorderThickness="1">
+    <Border Grid.Row="2" Margin="0,5,0,0" BorderBrush="#3338BDF8" BorderThickness="1">
       <ScrollViewer >
         <ItemsControl Items="{Binding FileUploads}">
           <ItemsControl.ItemTemplate>

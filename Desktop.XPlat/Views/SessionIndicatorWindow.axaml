@@ -7,8 +7,8 @@
         Width="300"
         Height="100"
         x:Class="Remotely.Desktop.XPlat.Views.SessionIndicatorWindow"
-        Background="#2b2726" 
-        Title="{Binding ProductName}p"
+        Background="#0B1424" 
+        Title="{Binding ProductName}"
         Icon="{Binding WindowIcon}"
         WindowStartupLocation="Manual"
         Topmost="True"
@@ -22,7 +22,7 @@
     <TextBlock Classes="SectionHeader" Foreground="White">
       Remote Control Started
     </TextBlock>
-    <TextBlock Foreground="LightGray">
+    <TextBlock Foreground="#94A3B8">
       A remote control session has started.
     </TextBlock>
   </StackPanel>

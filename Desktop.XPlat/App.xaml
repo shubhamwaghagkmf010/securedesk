@@ -1,4 +1,4 @@
-﻿<Application xmlns="https://github.com/avaloniaui"
+<Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:Remotely.Desktop.XPlat;assembly=Remotely_Desktop"
              x:Class="Remotely.Desktop.XPlat.App">
@@ -8,37 +8,106 @@
 
     <Application.Styles>
         <StyleInclude Source="avares://Avalonia.Themes.Default/DefaultTheme.xaml"/>
-        <StyleInclude Source="avares://Avalonia.Themes.Default/Accents/BaseLight.xaml"/>
+        <StyleInclude Source="avares://Avalonia.Themes.Default/Accents/BaseDark.xaml"/>
 
-      <Style Selector="Button.TitlebarButton">
-        <Setter Property="Background" Value="#FF464646"></Setter>
-        <Setter Property="DockPanel.Dock" Value="Right"></Setter>
-        <Setter Property="HorizontalAlignment" Value="Right"></Setter>
-        <Setter Property="BorderBrush" Value="{x:Null}"></Setter>
-        <Setter Property="Foreground" Value="White"></Setter>
-        <Setter Property="FontWeight" Value="Bold"></Setter>
-        <Setter Property="Height" Value="30"></Setter>
-        <Setter Property="Width" Value="30"></Setter>
-        <Setter Property="Cursor" Value="Hand"></Setter>
-        <Setter Property="Margin" Value="5,0,5,0"></Setter>
-      </Style>
-      <Style Selector="TextBlock.SectionHeader">
-        <Setter Property="FontWeight" Value="Bold"></Setter>
-        <Setter Property="FontSize" Value="18"></Setter>
-      </Style>
-      <Style Selector="Button.NormalButton">
-        <Setter Property="Background" Value="White"></Setter>
-        <Setter Property="BorderThickness" Value="1"></Setter>
-        <Setter Property="BorderBrush" Value="Black"></Setter>
-        <Setter Property="Padding" Value="6,4"></Setter>
-      </Style>
-      <Style Selector="Button.HyperlinkButton">
-        <Setter Property="Foreground" Value="DodgerBlue"></Setter>
-        <Setter Property="BorderThickness" Value="0"></Setter>
-        <Setter Property="BorderBrush" Value="Transparent"></Setter>
-        <Setter Property="Cursor" Value="Hand"></Setter>
-        <Setter Property="Background" Value="Transparent"></Setter>
-        <Setter Property="Padding" Value="0"></Setter>
-      </Style>
+        <!-- SecureDesk dark-glass look (same palette as the Windows clients): teal / aqua accents on a deep navy surface -->
+        <Style Selector="Window">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                        <GradientStop Color="#FF0B1424" Offset="0"/>
+                        <GradientStop Color="#FF0F1B2D" Offset="0.6"/>
+                        <GradientStop Color="#FF0A2A33" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Foreground" Value="#F1F5F9"/>
+            <Setter Property="FontFamily" Value="avares://Remotely_Desktop/Assets/Fonts#Plus Jakarta Sans, Inter, Segoe UI, Ubuntu, Helvetica, sans-serif"/>
+        </Style>
+        <Style Selector="TextBlock"><Setter Property="Foreground" Value="#F1F5F9"/></Style>
+
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="#B00F172A"/>
+            <Setter Property="Foreground" Value="#F1F5F9"/>
+            <Setter Property="BorderBrush" Value="#6638BDF8"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="CaretBrush" Value="#22D3EE"/>
+            <Setter Property="SelectionBrush" Value="#8014B8A6"/>
+            <Setter Property="Padding" Value="10,6"/>
+        </Style>
+        <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="#FF22D3EE"/>
+            <Setter Property="Background" Value="#CC0F172A"/>
+        </Style>
+
+        <Style Selector="ListBox">
+            <Setter Property="Background" Value="#660B1220"/>
+            <Setter Property="BorderBrush" Value="#3338BDF8"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected /template/ ContentPresenter"><Setter Property="Background" Value="#6614B8A6"/></Style>
+        <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="#3314B8A6"/></Style>
+        <Style Selector="GridSplitter"><Setter Property="Background" Value="#3314B8A6"/></Style>
+        <Style Selector="CheckBox"><Setter Property="Foreground" Value="#F1F5F9"/></Style>
+        <Style Selector="ContextMenu"><Setter Property="Background" Value="#FF101A2C"/><Setter Property="BorderBrush" Value="#5514B8A6"/></Style>
+
+        <!-- title bar buttons (minimize / close) -->
+        <Style Selector="Button.TitlebarButton">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="DockPanel.Dock" Value="Right"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="BorderBrush" Value="{x:Null}"/>
+            <Setter Property="Foreground" Value="#CBD5E1"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Width" Value="30"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="5,0,5,0"/>
+        </Style>
+        <Style Selector="Button.TitlebarButton:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#3314B8A6"/>
+        </Style>
+
+        <Style Selector="TextBlock.SectionHeader">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Foreground" Value="#F1F5F9"/>
+        </Style>
+
+        <!-- primary buttons: teal gradient, dark text -->
+        <Style Selector="Button.NormalButton">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                        <GradientStop Color="#FF14B8A6" Offset="0"/>
+                        <GradientStop Color="#FF22D3EE" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Foreground" Value="#FF04121A"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.NormalButton:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#FF2DD4BF"/>
+        </Style>
+        <Style Selector="Button.NormalButton:pressed /template/ ContentPresenter"><Setter Property="Opacity" Value="0.85"/></Style>
+
+        <Style Selector="Button.HyperlinkButton">
+            <Setter Property="Foreground" Value="#FF2DD4BF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
     </Application.Styles>
 </Application>

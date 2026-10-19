@@ -26,7 +26,13 @@ namespace Remotely.Agent.Services
             else if (EnvironmentHelper.IsLinux)
             {
                 Process.Start("sudo", "systemctl stop remotely-agent").WaitForExit();
-                Directory.Delete("/usr/local/bin/Remotely", true);
+                foreach (var dir in new[] { "/usr/local/bin/SecureDesk", "/usr/local/bin/Remotely" })
+                {
+                    if (Directory.Exists(dir))
+                    {
+                        Directory.Delete(dir, true);
+                    }
+                }
                 File.Delete("/etc/systemd/system/remotely-agent.service");
                 Process.Start("sudo", "systemctl daemon-reload").WaitForExit();
             }

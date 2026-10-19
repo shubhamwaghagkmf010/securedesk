@@ -37,7 +37,7 @@ namespace Remotely.Desktop.XPlat.ViewModels
             {
                 var brandingInfo = DeviceInitService?.BrandingInfo ?? new Shared.Models.BrandingInfo();
 
-                ProductName = "Remotely";
+                ProductName = "SecureDesk";
 
                 if (!string.IsNullOrWhiteSpace(brandingInfo?.Product))
                 {

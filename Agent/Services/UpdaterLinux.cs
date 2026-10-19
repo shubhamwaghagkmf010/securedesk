@@ -125,9 +125,9 @@ namespace Remotely.Agent.Services
                 Logger.Write("Service Updater: Downloading install package.");
 
                 var downloadId = Guid.NewGuid().ToString();
-                var zipPath = Path.Combine(Path.GetTempPath(), "RemotelyUpdate.zip");
+                var zipPath = Path.Combine(Path.GetTempPath(), "SecureDeskUpdate.zip");
 
-                var installerPath = Path.Combine(Path.GetTempPath(), "RemotelyUpdate.sh");
+                var installerPath = Path.Combine(Path.GetTempPath(), "SecureDeskUpdate.sh");
 
                 string platform;
 

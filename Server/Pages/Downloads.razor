@@ -103,9 +103,9 @@
             <p>
                 <a target="_blank" href="/API/ClientDownloads/WindowsInstaller">Windows Installer (x64/x86)</a>
                 <br />
-                <a target="_blank" href="/Content/Remotely-Win10-x64.zip">Windows x64 Files Only</a>
+                <a target="_blank" href="/api/ClientDownloads/package/Win10-x64">Windows x64 Files Only</a>
                 <br />
-                <a target="_blank" href="/Content/Remotely-Win10-x86.zip">Windows x86 Files Only</a>
+                <a target="_blank" href="/api/ClientDownloads/package/Win10-x86">Windows x86 Files Only</a>
             </p>
 
             <p>
@@ -133,7 +133,7 @@
                     -quiet
                     -organizationid "@_organizationId"
                     -serverurl "@(NavManager.BaseUri.TrimEnd('/'))"
-                    -path "[path]\Remotely-Win10-x64.zip"
+                    -path "[path]\SecureDesk-Win10-x64.zip"
                 </code>
             </p>
             <p>
@@ -157,22 +157,22 @@
                 <br />
                 <a target="_blank" href="/API/ClientDownloads/ManjaroInstaller-x64">Manjaro x64 Bash Installer</a>
                 <br />
-                <a target="_blank" href="/Content/Remotely-Linux.zip">Linux x64 Files Only</a>
+                <a target="_blank" href="/api/ClientDownloads/package/Linux">Linux x64 Files Only</a>
             </p>
             <p>
                 <div class="small">Example Install:</div>
                 
-                <code class="label label-default small">sudo [path]/Install-Ubuntu-x64.sh</code>
+                <code class="label label-default small">sudo [path]/SecureDesk_Install-Ubuntu-x64.sh</code>
             </p>
             <p>
                 <div class="small">Example Local Install:</div>
               
-                <code class="label label-default small">sudo [path]/Install-Ubuntu-x64.sh --path [path]/Remotely-Linux.zip</code>
+                <code class="label label-default small">sudo [path]/SecureDesk_Install-Ubuntu-x64.sh --path [path]/SecureDesk-Linux.zip</code>
             </p>
             <p>
                 <div class="small">Uninstall:</div>
 
-                <code class="label label-default small">sudo [path]/Install-Ubuntu-x64.sh --uninstall</code>
+                <code class="label label-default small">sudo [path]/SecureDesk_Install-Ubuntu-x64.sh --uninstall</code>
             </p>
         </div>
 
@@ -181,30 +181,30 @@
             <p>
                 <a target="_blank" href="/API/ClientDownloads/MacOSInstaller-x64">macOS x64 Bash Installer</a>
                 <br />
-                <a target="_blank" href="/Content/Remotely-MacOS-x64.zip">macOS x64 Files Only</a>
+                <a target="_blank" href="/api/ClientDownloads/package/MacOS-x64">macOS x64 Files Only</a>
             </p>
 
-            @*<strong>macOS arm64 (11.01)</strong>
+            <strong>macOS arm64 (11.01 and newer, Apple silicon)</strong>
             <p>
                 <a target="_blank" href="/API/ClientDownloads/MacOSInstaller-arm64">macOS arm64 Bash Installer</a>
                 <br />
-                <a target="_blank" href="/Content/Remotely-MacOS-arm64.zip">macOS arm64 Files Only</a>
-            </p>*@
+                <a target="_blank" href="/api/ClientDownloads/package/MacOS-arm64">macOS arm64 Files Only</a>
+            </p>
 
             <p>
                 <div class="small">Example Install:</div>
                 
-                <code class="label label-default small">sudo [path]/Install-MacOS-x64.sh</code>
+                <code class="label label-default small">sudo [path]/SecureDesk_Install-MacOS-x64.sh</code>
             </p>
             <p>
                 <div class="small">Example Local Install:</div>
                
-                <code class="label label-default small">sudo [path]/Install-MacOS-x64.sh --path [path]/Remotely-MacOS-x64.zip</code>
+                <code class="label label-default small">sudo [path]/SecureDesk_Install-MacOS-x64.sh --path [path]/SecureDesk-MacOS-x64.zip</code>
             </p>
             <p>
                 <div class="small">Example Uninstall:</div>
                 
-                <code class="label label-default small">sudo [path]/Install-MacOS-x64.sh --uninstall</code>
+                <code class="label label-default small">sudo [path]/SecureDesk_Install-MacOS-x64.sh --uninstall</code>
             </p>
         </div>
     }
