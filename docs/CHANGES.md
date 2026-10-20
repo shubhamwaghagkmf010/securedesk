@@ -33,3 +33,15 @@ registry key `...\Uninstall\Remotely`, agent zip file names. Renaming them would
 
 ## Not rebuilt
 The agent packages (`Remotely-Win10-*.zip`, Linux, macOS) are the stock upstream ones.
+
+## Active Directory login (optional, off by default)
+* LDAP/LDAPS sign-in with the AD username (`Server/Services/LdapAuthService.cs`, `AdSettings.cs`, `AdUserService.cs`; login page `Areas/Identity/Pages/Account/Login.cshtml(.cs)`).
+* Settings in two files outside the image (`ad/ad-config.env`, `ad/ad-users.txt`); `apply-ad.sh` tests everything and only then switches the login on.
+* Only users listed in `ad-users.txt` can log in; optional AD groups decide Organization Admin; users are created on first login.
+* 2FA for AD users with the existing authenticator pages. `AD_REQUIRE_2FA` defaults to true, is read from the file only and cannot be changed from the web console. First login opens only the authenticator setup (middleware in `Startup.cs`).
+* Wrong-password lockout (5 tries, 5 minutes), LDAP filter escaping, certificate check against an optional company CA file.
+* The Linux/macOS client stage of `docker/Dockerfile` copies only the projects it needs, so Server changes no longer rebuild it.
+* A directory user carries a marker (`sd_ad_user` claim) and is only ever checked against Active Directory: a local password on such an account is ignored and removed at the next AD login, "Forgot password" sends nothing for it, and the Password / Email pages are closed (`Startup.cs`, `Login.cshtml.cs`, `ForgotPassword.cshtml.cs`, `AdUserService.cs`).
+* Password, one-time code and recovery code fields accept only hand-typed text: no paste, drop or autofill (`Server/wwwroot/paste-guard.js`, switch `SECUREDESK_BLOCK_PASTE`, default on). A browser-side aid; lockout and 2FA remain the real protection.
+* Layout polish: the Razor-page footer now sits below the content (it overlapped the last 60px, hiding e.g. recovery codes), compact headings and a tidy account menu, recovery codes as chips, one alignment grid in the sidebar, compact filter row and card grid on the device list, a compact home card, example commands as boxes, two balanced columns on Downloads, scrolling tables on phones (`darkly.custom.css`, `site.css`).
+* Login cookie / form keys are stored in the data volume (`/remotely-data/dp-keys`, or `SECUREDESK_KEYS_DIR`), so re-creating the container (an update) no longer signs everybody out or breaks pages that were open.

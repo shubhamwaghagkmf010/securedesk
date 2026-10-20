@@ -19,7 +19,11 @@ FROM mcr.microsoft.com/dotnet/sdk:6.0-bookworm-slim AS unix-clients
 ARG UPSTREAM_VERSION
 RUN apt-get update && apt-get install -y --no-install-recommends zip && rm -rf /var/lib/apt/lists/*
 WORKDIR /src
-COPY . .
+# only what the Linux/macOS clients need, so changes to the Server do not rebuild them
+COPY Shared ./Shared
+COPY Desktop.Core ./Desktop.Core
+COPY Agent ./Agent
+COPY Desktop.XPlat ./Desktop.XPlat
 RUN rm -f Desktop.XPlat/nuget.config
 # Linux: agent + session client (Desktop folder), self-contained like the upstream package
 RUN dotnet publish Agent/Agent.csproj -c Release -r linux-x64 --self-contained true -p:Version=${UPSTREAM_VERSION} -p:FileVersion=${UPSTREAM_VERSION} -o /pub/linux-x64

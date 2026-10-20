@@ -1,0 +1,7 @@
+# SecureDesk - people who may log in with their Active Directory account.
+# Copy this file to ad-users.txt. One username per line (the AD logon name, without the domain).
+# Lines starting with # are ignored. Changes are picked up without a restart.
+# ad-users.txt is never committed to Git.
+raju
+amit
+priya

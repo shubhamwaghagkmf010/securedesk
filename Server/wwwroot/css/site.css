@@ -80,3 +80,7 @@ input[disabled], input[readonly], select[disabled] {
 .pointer {
     cursor: pointer;
 }
+/* Footer sits below the page content on every theme (it used to float over the last 60px). */
+body.sd-identity { display: flex; flex-direction: column; min-height: 100vh; margin-bottom: 0 !important; }
+body.sd-identity > .container { flex: 1 0 auto; width: 100%; }
+body.sd-identity > footer.footer { position: static !important; flex-shrink: 0; width: 100%; height: auto !important; margin-top: 1.25rem !important; padding: 14px 0; line-height: 1.5 !important; white-space: normal !important; }

@@ -7,10 +7,13 @@ services:
     environment:
       ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"        # trust the X-Forwarded-* headers from the Caddy container
       SECUREDESK_SEED_ADMIN: ${SECUREDESK_SEED_ADMIN:-true}
+      SECUREDESK_BLOCK_PASTE: ${SECUREDESK_BLOCK_PASTE:-true}   # password / one-time code fields accept only hand-typed text
       SECUREDESK_ADMIN_EMAIL: ${SECUREDESK_ADMIN_EMAIL:-admin@securedesk.local}
       SECUREDESK_ADMIN_PASSWORD: ${SECUREDESK_ADMIN_PASSWORD:-}
     volumes:
       - securedesk-data:/remotely-data
+      # Active Directory login files (see ad/ad-config.env.example and apply-ad.sh); read-only
+      - ./ad:/ad:ro
 
   caddy:
     image: caddy:2

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Encodings.Web;
 using System.Text;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -49,6 +50,12 @@ namespace Remotely.Server.Areas.Identity.Pages.Account
                 if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
                 {
                     // Don't reveal that the user does not exist or is not confirmed
+                    return RedirectToPage("./ForgotPasswordConfirmation");
+                }
+
+                if ((await _userManager.GetClaimsAsync(user)).Any(x => x.Type == AdUserService.AdClaimType))
+                {
+                    // the password of a directory user lives in Active Directory: no reset mail, same answer as for unknown users
                     return RedirectToPage("./ForgotPasswordConfirmation");
                 }
 
