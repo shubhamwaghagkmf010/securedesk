@@ -6,6 +6,7 @@
 @inject IWebHostEnvironment Environment
 @inject ICompositeViewEngine Engine
 @inject IDataService DataService
+@inject IAdSettings AdSettings
 
 @{
     var organizationName = "SecureDesk";
@@ -47,6 +48,7 @@
     @{ var bgVersion = Remotely.Server.API.BackgroundStorage.Version; }
     <style>:root { --sd-watermark: "@Html.Raw(watermark)"; } @if (bgVersion > 0) { <text>html:root { --sd-bg-image: url("/branding/background?v=@bgVersion"); }</text> }</style>
     <script src="~/theme.js"></script>
+    <meta name="sd-block-paste" content="@(string.Equals(System.Environment.GetEnvironmentVariable("SECUREDESK_BLOCK_PASTE"), "false", System.StringComparison.OrdinalIgnoreCase) ? "false" : "true")" />
 
     @if (user is RemotelyUser)
     {
@@ -80,8 +82,13 @@
     }
     <script src="~/ripple.js" asp-append-version="true" defer></script>
     <script src="~/lamp.js" asp-append-version="true" defer></script>
+    <script src="~/paste-guard.js" asp-append-version="true" defer></script>
 </head>
-<body>
+<body class="sd-identity">
+    @if (AdSettings.Enabled && !AdSettings.RequireTwoFactor && user?.IsAdministrator == true)
+    {
+        <div style="background:#b3261e;color:#fff;padding:6px 12px;text-align:center;font-size:13px;position:relative;z-index:50">Warning: two-factor sign-in is switched OFF for Active Directory users (server setting AD_REQUIRE_2FA).</div>
+    }
     <header>
         <nav class="navbar navbar-dark bg-primary navbar-expand-sm navbar-toggleable-sm mb-3">
             <div class="container">

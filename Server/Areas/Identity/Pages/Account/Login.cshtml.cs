@@ -15,6 +15,7 @@ using Remotely.Shared.Models;
 using Remotely.Server.Services;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text;
+using System.Security.Claims;
 
 namespace Remotely.Server.Areas.Identity.Pages.Account
 {
@@ -25,12 +26,21 @@ namespace Remotely.Server.Areas.Identity.Pages.Account
         private readonly SignInManager<RemotelyUser> _signInManager;
         private readonly ILogger<LoginModel> _logger;
         private readonly IDataService _dataService;
+        private readonly IAdSettings _adSettings;
+        private readonly ILdapAuthService _ldap;
+        private readonly IAdUserService _adUsers;
 
         public LoginModel(SignInManager<RemotelyUser> signInManager, 
             UserManager<RemotelyUser> userManager,
             ILogger<LoginModel> logger,
-            IDataService dataService)
+            IDataService dataService,
+            IAdSettings adSettings,
+            ILdapAuthService ldap,
+            IAdUserService adUsers)
         {
+            _adSettings = adSettings;
+            _ldap = ldap;
+            _adUsers = adUsers;
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
@@ -39,6 +49,8 @@ namespace Remotely.Server.Areas.Identity.Pages.Account
 
         [BindProperty]
         public InputModel Input { get; set; }
+
+        public bool AdEnabled => _adSettings.Enabled;
 
         public IList<AuthenticationScheme> ExternalLogins { get; set; }
 
@@ -50,7 +62,7 @@ namespace Remotely.Server.Areas.Identity.Pages.Account
         public class InputModel
         {
             [Required]
-            [EmailAddress]
+            [Display(Name = "Username or email")]
             public string Email { get; set; }
 
             [Required]
@@ -86,6 +98,28 @@ namespace Remotely.Server.Areas.Identity.Pages.Account
         
             if (ModelState.IsValid)
             {
+                var typed = Input.Email.Trim();
+                var known = await _userManager.FindByNameAsync(typed);
+                if (known == null && typed.Contains('@'))
+                {
+                    known = await _userManager.FindByEmailAsync(typed);
+                }
+                if (known != null && (await _userManager.GetClaimsAsync(known)).Any(x => x.Type == AdUserService.AdClaimType))
+                {
+                    // a directory user is only ever checked against Active Directory, never with a local password
+                    if (!_adSettings.Enabled)
+                    {
+                        ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                        return Page();
+                    }
+                    return await AdLoginAsync(StripDomain(typed.Contains('@') ? typed.Substring(0, typed.IndexOf('@')) : typed), returnUrl);
+                }
+                if (known == null && _adSettings.Enabled)
+                {
+                    // not a local account: check Active Directory
+                    return await AdLoginAsync(StripDomain(typed), returnUrl);
+                }
+
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
@@ -126,6 +160,70 @@ namespace Remotely.Server.Areas.Identity.Pages.Account
 
             // If we got this far, something failed, redisplay form
             return Page();
+        }
+
+        private string StripDomain(string typed)
+        {
+            var suffix = "@" + _adSettings.Domain;
+            return !string.IsNullOrWhiteSpace(_adSettings.Domain) && typed.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)
+                ? typed.Substring(0, typed.Length - suffix.Length)
+                : typed;
+        }
+
+        private async Task<IActionResult> AdLoginAsync(string username, string returnUrl)
+        {
+            var ad = await _ldap.AuthenticateAsync(username, Input.Password);
+            if (ad.Kind == AdAuthKind.Locked)
+            {
+                ModelState.AddModelError(string.Empty, "Too many wrong attempts. Please wait a few minutes and try again.");
+                return Page();
+            }
+            if (ad.Kind == AdAuthKind.Unavailable)
+            {
+                ModelState.AddModelError(string.Empty, "The company directory is not reachable right now. Please try again later or ask your administrator.");
+                return Page();
+            }
+            if (ad.Kind != AdAuthKind.Success)
+            {
+                _logger.LogWarning("AD login failed for {User}: {Reason}", username, ad.Reason);
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                return Page();
+            }
+
+            var user = await _adUsers.EnsureUserAsync(ad);
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                return Page();
+            }
+            if (await _userManager.IsLockedOutAsync(user))
+            {
+                return RedirectToPage("./Lockout");
+            }
+
+            if (await _userManager.GetTwoFactorEnabledAsync(user))
+            {
+                if (await _signInManager.IsTwoFactorClientRememberedAsync(user))
+                {
+                    await _signInManager.SignInAsync(user, Input.RememberMe, "ldap");
+                    return LocalRedirect(returnUrl);
+                }
+                // the same second step that local accounts use: the code page finishes the sign in
+                var identity = new ClaimsIdentity(IdentityConstants.TwoFactorUserIdScheme);
+                identity.AddClaim(new Claim(ClaimTypes.Name, user.Id));
+                await HttpContext.SignInAsync(IdentityConstants.TwoFactorUserIdScheme, new ClaimsPrincipal(identity));
+                return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, RememberMe = Input.RememberMe });
+            }
+
+            if (_adSettings.RequireTwoFactor)
+            {
+                // first login: the only page that opens is the authenticator setup (see Startup)
+                await _signInManager.SignInWithClaimsAsync(user, Input.RememberMe, new[] { new Claim("sd_2fa_setup", "1") });
+                return LocalRedirect("/Identity/Account/Manage/EnableAuthenticator");
+            }
+
+            await _signInManager.SignInAsync(user, Input.RememberMe, "ldap");
+            return LocalRedirect(returnUrl);
         }
     }
 }

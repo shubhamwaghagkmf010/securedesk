@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Remotely.Server.Services;
 using Remotely.Shared.Utilities;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,11 @@ namespace Remotely.Server
     {
         public static void Main(string[] args)
         {
+            if (args.Contains("--ad-test"))
+            {
+                Environment.Exit(AdSelfTest.Run());
+                return;
+            }
             CreateHostBuilder(args).Build().Run();
         }
 

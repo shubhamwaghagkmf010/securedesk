@@ -73,6 +73,23 @@ Update with `docker compose pull && docker compose up -d`.
 
 ---
 
+## Active Directory login (optional)
+
+Technicians can sign in with their company Active Directory username and password, followed by an authenticator app code (2FA).
+It is off until you switch it on, the normal login keeps working, and the local administrator account always works.
+
+1. Copy `ad/ad-config.env.example` to `ad/ad-config.env` and `ad/ad-users.txt.example` to `ad/ad-users.txt`, then fill them in
+   (domain controller, base DN, a read-only service account, the usernames that may log in, optional AD groups).
+   Both files stay on your server: they are not in the image and not in Git.
+2. Run `./apply-ad.sh`. It checks the files, tests the connection and the service account with the server's own code, and only if
+   everything passes it sets `AD_ENABLED=true` and restarts SecureDesk. `./apply-ad.sh --test-login USER` also tests one password.
+3. People type only their username (for example `raju`). New users are created automatically in the default organization (or, if none is marked, the server administrator's organization).
+   Members of `AD_ADMINS_GROUP` become Organization Admins. To limit a user to some devices, put the user and those devices into a Device Group.
+
+Two-factor sign-in is required for AD users by default (`AD_REQUIRE_2FA=true`). This is a security setting that only the server
+administrator can change, in `ad/ad-config.env` (there is no switch in the web console); anything but an explicit `false` keeps it required.
+The first AD login opens only the authenticator setup page. Use LDAPS (port 636); plain LDAP is refused unless `AD_ALLOW_INSECURE=true`.
+
 ## HTTPS
 
 The `caddy` container terminates TLS and forwards to SecureDesk.

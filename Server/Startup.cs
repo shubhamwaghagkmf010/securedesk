@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -82,6 +83,21 @@ namespace Remotely.Server
                 });
             }
 
+            // The keys that protect login cookies and forms are kept in the data volume. Without this they live inside
+            // the container and every container re-creation (an update) breaks open pages and signs everybody out.
+            var keysDir = Environment.GetEnvironmentVariable("SECUREDESK_KEYS_DIR");
+            if (string.IsNullOrWhiteSpace(keysDir) && Directory.Exists("/remotely-data"))
+            {
+                keysDir = "/remotely-data/dp-keys";
+            }
+            if (!string.IsNullOrWhiteSpace(keysDir))
+            {
+                Directory.CreateDirectory(keysDir);
+                services.AddDataProtection()
+                    .PersistKeysToFileSystem(new DirectoryInfo(keysDir))
+                    .SetApplicationName("SecureDesk");
+            }
+
             services.AddIdentity<RemotelyUser, IdentityRole>(options =>
             {
                 options.Stores.MaxLengthForKeys = 128;
@@ -155,6 +171,9 @@ namespace Remotely.Server
 
             services.AddHttpClient();
             services.AddLogging();
+            services.AddSingleton<IAdSettings, AdSettings>();
+            services.AddSingleton<ILdapAuthService, LdapAuthService>();
+            services.AddScoped<IAdUserService, AdUserService>();
             services.AddScoped<IEmailSenderEx, EmailSenderEx>();
             services.AddScoped<IEmailSender, EmailSender>();
             services.AddScoped<IAppDbFactory, AppDbFactory>();
@@ -220,6 +239,57 @@ namespace Remotely.Server
 
             app.UseAuthentication();
             app.UseAuthorization();
+            app.Use(async (context, next) =>
+            {
+                // The password and the e-mail of a directory user belong to Active Directory.
+                if (context.User.Identity?.IsAuthenticated == true && context.User.HasClaim(AdUserService.AdClaimType, "1"))
+                {
+                    var adPath = context.Request.Path.Value ?? string.Empty;
+                    if (adPath.StartsWith("/Identity/Account/Manage/ChangePassword", StringComparison.OrdinalIgnoreCase)
+                        || adPath.StartsWith("/Identity/Account/Manage/SetPassword", StringComparison.OrdinalIgnoreCase)
+                        || adPath.StartsWith("/Identity/Account/Manage/Email", StringComparison.OrdinalIgnoreCase))
+                    {
+                        context.Response.Redirect("/Identity/Account/Manage");
+                        return;
+                    }
+                }
+                await next();
+            });
+            app.Use(async (context, next) =>
+            {
+                // An Active Directory user who must still set up 2FA can only reach the authenticator setup.
+                if (context.User.Identity?.IsAuthenticated == true && context.User.HasClaim("sd_2fa_setup", "1"))
+                {
+                    var users = context.RequestServices.GetRequiredService<UserManager<RemotelyUser>>();
+                    var user = await users.GetUserAsync(context.User);
+                    if (user != null && await users.GetTwoFactorEnabledAsync(user))
+                    {
+                        // setup is done: issue a normal session without the setup marker
+                        await context.RequestServices.GetRequiredService<SignInManager<RemotelyUser>>().RefreshSignInAsync(user);
+                    }
+                    else
+                    {
+                        var path = context.Request.Path.Value ?? string.Empty;
+                        var allowed = path.StartsWith("/Identity/Account/Manage/EnableAuthenticator", StringComparison.OrdinalIgnoreCase)
+                            || path.StartsWith("/Identity/Account/Manage/ShowRecoveryCodes", StringComparison.OrdinalIgnoreCase)
+                            || path.StartsWith("/Identity/Account/Logout", StringComparison.OrdinalIgnoreCase)
+                            || System.IO.Path.HasExtension(path);
+                        if (!allowed)
+                        {
+                            if (HttpMethods.IsGet(context.Request.Method))
+                            {
+                                context.Response.Redirect("/Identity/Account/Manage/EnableAuthenticator");
+                            }
+                            else
+                            {
+                                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                            }
+                            return;
+                        }
+                    }
+                }
+                await next();
+            });
             app.UseCors("TrustedOriginPolicy");
 
             app.UseEndpoints(endpoints =>
