@@ -31,6 +31,26 @@ Set `SECUREDESK_SEED_ADMIN=false` if you prefer to create the first account your
 
 ---
 
+## Install on a new server (one script)
+
+```bash
+git clone https://github.com/shubhamwaghagkmf010/securedesk.git
+cd securedesk
+sudo bash SecureDesk-Installation.sh
+```
+
+The script does everything for you and prints each step with a time stamp (the same log is saved as `install.log` in the install folder):
+
+* asks where to install: `/appdata/securedesk`, the current folder, or any other folder (shows the free space of each)
+* installs Docker and Docker Compose if they are missing
+* checks the HTTP and HTTPS ports (80 / 443); if one is busy it shows which program uses it and moves to a free port (8080, 5443, ...). Nothing that is running is stopped
+* downloads the compose files, pulls the image, starts SecureDesk and checks that the login page answers
+* ends with a summary: URL (with the chosen port), default login, folder, ports and log path
+
+Running it again later is safe: your `.env` and data are kept, and the image is updated. Options: `--dir PATH`, `--http-port N`, `--https-port N`, `--host NAME_OR_IP`, `--yes` (no questions), `--help`.
+
+---
+
 ## Quick start (Docker, with HTTPS)
 
 ```bash
