@@ -19,6 +19,7 @@ after reviewing a result.
 | `safe-deploy.sh` | **Manual only.** Backs up the compose file and the live SQLite database, swaps the production app image, health-checks it for up to ~60s, and automatically rolls back to the previous image if the health check fails. | a human, after reviewing a `ready-for-review` candidate |
 | `rollback.sh` | **Manual only.** Reverts production to a known-good image (defaults to `shubhamwaghagkmf010/securedesk:1.4.0`). | a human |
 | `git-sync-push.sh` | **Manual only.** Syncs the current `~/securedesk-ui-build` source and this `automation/` folder into a git clone of this repo and pushes, after showing the diff and asking for confirmation. | a human, when source/automation changes need to go to GitHub |
+| `securedesk-update.sh` | **Runs on EVERY SecureDesk server**, including ones set up fresh with `SecureDesk-Installation.sh` - no source code or SDK needed. Pulls whatever newer `caddy:2` / `shubhamwaghagkmf010/securedesk:latest` images are currently published, and safely swaps them in: backs up the compose file and database, restarts, health-checks for ~60s, and **automatically rolls back** (to a locally pinned copy of the previous images, not just the old floating-tag reference) if the new one doesn't come up healthy. Safe to put on cron. | any server, manually or via cron - see below |
 
 ## Status and logs
 
@@ -55,9 +56,18 @@ sudo bash ~/securedesk-auto-update/rollback.sh
 
 ## Cron (not installed automatically - add it yourself)
 
+On the build server (`172.16.0.81` - the one with `~/securedesk-ui-build`):
 ```
 0 2 * * *   /home/claude/securedesk-auto-update/scan-vulnerabilities.sh >> /home/claude/securedesk-auto-update/logs/cron-scan.log 2>&1
 0 3 * * 1   /home/claude/securedesk-auto-update/check-for-updates.sh >> /home/claude/securedesk-auto-update/logs/cron-check.log 2>&1
+```
+
+On **any** SecureDesk server (including a fresh install made with `SecureDesk-Installation.sh` - this one needs no source tree, just the one script):
+```bash
+curl -fsSL https://raw.githubusercontent.com/shubhamwaghagkmf010/securedesk/main/automation/securedesk-update.sh -o /opt/securedesk/securedesk-update.sh
+chmod +x /opt/securedesk/securedesk-update.sh
+# weekly, Monday 4am - adjust --dir to the real install folder
+0 4 * * 1   /usr/bin/bash /opt/securedesk/securedesk-update.sh --yes --dir /opt/securedesk >> /opt/securedesk/update.log 2>&1
 ```
 
 ## What this system will never do by itself
