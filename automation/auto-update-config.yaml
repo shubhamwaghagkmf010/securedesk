@@ -1,0 +1,77 @@
+# SecureDesk Auto-Update System - configuration
+# -----------------------------------------------------------------------------
+# Edit this file to change what gets tracked and how often. You should not
+# need to touch the .sh scripts to change behavior - everything tunable is
+# here, in plain key: value lines (kept flat on purpose so it can be read
+# reliably with grep/awk, with no extra tooling required).
+# -----------------------------------------------------------------------------
+
+# MASTER SWITCH. Set to false to completely disable the auto-update system -
+# check-for-updates.sh and scan-vulnerabilities.sh will exit immediately and
+# do nothing else.
+auto_update_enabled: true
+
+# How often each script is meant to run (the actual schedule is set by cron
+# jobs - see the comments at the top of check-for-updates.sh and
+# scan-vulnerabilities.sh; these fields are documentation only, changing
+# them does not change the schedule).
+scan_frequency: daily
+rebuild_frequency: weekly
+
+# --- What to track ----------------------------------------------------------
+
+# .NET: this only tracks whether the CURRENT pinned channel (e.g. "8.0") is
+# still an actively supported LTS release. It does NOT automatically move to
+# a new major version - a major .NET upgrade is a deliberate, human-reviewed
+# phase (like the .NET 6 -> 8 upgrade that was just done), never something
+# this config can trigger by itself.
+dotnet_enabled: true
+dotnet_channel: "8.0"
+
+# Docker base images: PATCH-level updates on these floating tags (e.g. a new
+# 8.0.x point release under the ":8.0" tag) are what actually gets rebuilt
+# and tested automatically. A full rebuild with --pull naturally picks up
+# whatever the latest patch is under each tag below.
+docker_images_enabled: true
+docker_images:
+  - mcr.microsoft.com/dotnet/sdk:8.0
+  - mcr.microsoft.com/dotnet/aspnet:8.0
+  - caddy:2
+  - glauth/glauth:latest
+
+# Vulnerability scanning (Trivy for OS/image CVEs, `dotnet list package
+# --vulnerable` for NuGet CVEs). Uses the official Trivy Docker image, not a
+# host install, so no host package install/sudo is required to run it.
+trivy_enabled: true
+
+# Which severities automatically trigger a rebuild+test when a FIX is
+# available upstream ("high" = Critical and High trigger a rebuild; Medium
+# and Low are report-only, never auto-trigger a rebuild on their own).
+# Set to "none" to make vulnerability scanning fully report-only.
+vulnerability_severity_auto_trigger: high
+
+# --- Safety -------------------------------------------------------------
+# These exist to make the "never touch production automatically" rule
+# explicit and easy to audit - not just implied by script logic.
+require_tests_pass: true            # a candidate is only kept if build AND
+                                     # the full test suite pass. No exceptions.
+auto_deploy_to_production: false    # MUST stay false. A human reviews the
+                                     # result and runs safe-deploy.sh by hand,
+                                     # every single time. The deploy ITSELF is
+                                     # then safe/automatic (health-checked,
+                                     # auto-rollback on failure) - but
+                                     # starting it is always a human decision.
+auto_rollback_on_failure: true      # if a build/test attempt fails, discard
+                                     # it automatically - never leave a half
+                                     # -applied change lying around.
+
+# --- Backups & rollback window -----------------------------------------
+backup_dir: "/appdata/securedesk-auto-update-backups"   # safe-deploy.sh database backups
+rollback_grace_period_days: 7        # how long to keep a previous production
+                                      # image around before it's safe to
+                                      # manually prune it (this is informational
+                                      # only - no script auto-deletes images)
+
+# --- Output -------------------------------------------------------------
+log_dir: "~/securedesk-auto-update/logs"
+status_file: "~/securedesk-auto-update/status.json"

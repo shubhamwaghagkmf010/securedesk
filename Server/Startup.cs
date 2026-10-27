@@ -118,6 +118,10 @@ namespace Remotely.Server
             });
 
             services.AddRazorPages();
+            // The anti-forgery and temp-data cookies carry the Secure flag whenever the request came in over HTTPS
+            // (also behind Caddy / a proxy); the plain-HTTP test mode keeps working.
+            services.AddAntiforgery(options => options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest);
+            services.Configure<Microsoft.AspNetCore.Mvc.CookieTempDataProviderOptions>(options => options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest);
             services.AddServerSideBlazor();
             services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<RemotelyUser>>();
             services.AddDatabaseDeveloperPageExceptionFilter();
@@ -149,6 +153,16 @@ namespace Remotely.Server
                     {
                         options.KnownProxies.Add(IPAddress.Parse(proxy));
                     }
+                }
+                else
+                {
+                    // No explicit proxy list configured. In this deployment the app's port is never published
+                    // directly to the host (only the Caddy container can reach it), so the forwarded headers it
+                    // sends can be trusted. Without this, ASP.NET Core's default (trust loopback only) silently
+                    // drops X-Forwarded-Proto from the Caddy container, which makes Request.IsHttps wrong and
+                    // was the root cause of the antiforgery/session cookies missing the Secure flag in production.
+                    options.KnownNetworks.Clear();
+                    options.KnownProxies.Clear();
                 }
             });
 
@@ -206,6 +220,29 @@ namespace Remotely.Server
         {
             app.UseForwardedHeaders();
 
+            app.Use(async (httpContext, next) =>
+            {
+                var headers = httpContext.Response.Headers;
+                headers["X-Content-Type-Options"] = "nosniff";
+                headers["X-Frame-Options"] = "DENY";
+                headers["Referrer-Policy"] = "no-referrer";
+                // Blazor Server needs 'unsafe-inline' for script/style (see _Host.cshtml / _Layout.cshtml inline
+                // blocks, e.g. the watermark <style> and the window.SD_ADMIN <script>) and ws:/wss: for its
+                // SignalR circuit. No 'unsafe-eval' is used anywhere in this app.
+                headers["Content-Security-Policy"] =
+                    "default-src 'self'; " +
+                    "script-src 'self' 'unsafe-inline'; " +
+                    "style-src 'self' 'unsafe-inline'; " +
+                    "img-src 'self' data:; " +
+                    "font-src 'self' data:; " +
+                    "connect-src 'self' ws: wss:; " +
+                    "object-src 'none'; " +
+                    "base-uri 'self'; " +
+                    "form-action 'self'; " +
+                    "frame-ancestors 'none';";
+                await next();
+            });
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -228,12 +265,17 @@ namespace Remotely.Server
 
             ConfigureStaticFiles(app, env);
 
-            app.UseSwagger();
-
-            app.UseSwaggerUI(c =>
+            if (IsDev)
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "SecureDesk API V1");
-            });
+                // Swagger exposes the full API surface, including admin/scripting/remote-control endpoints -
+                // it must never be reachable in a production deployment.
+                app.UseSwagger();
+
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "SecureDesk API V1");
+                });
+            }
 
             app.UseRouting();
 

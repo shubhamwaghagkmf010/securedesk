@@ -38,14 +38,35 @@ touch "$LOG" && chmod 600 "$LOG" 2>/dev/null
 say "=== apply-ad.sh $(date '+%F %T') ==="
 
 [ -f "$CONF" ] || fail "$CONF not found. Copy ad/ad-config.env.example to $CONF and fill it in."
-[ -f "$USERS" ] || fail "$USERS not found. Copy ad/ad-users.txt.example to $USERS and list the allowed usernames."
+
+MODE="$(get AD_BIND_MODE)"; MODE="${MODE,,}"; [ -n "$MODE" ] || MODE=service
+case "$MODE" in service|user) ;; *) fail "AD_BIND_MODE must be service or user (found: $MODE)" ;; esac
+USELIST=1; [ "$(get AD_ALLOW_LIST | tr 'A-Z' 'a-z')" = "false" ] && USELIST=0
 
 # 1. required values (the password itself is never printed)
-for key in AD_SERVER AD_BASE_DN AD_SERVICE_ACCOUNT AD_SERVICE_PASSWORD; do
+REQUIRED="AD_SERVER AD_BASE_DN"
+[ "$MODE" = service ] && REQUIRED="$REQUIRED AD_SERVICE_ACCOUNT AD_SERVICE_PASSWORD"
+for key in $REQUIRED; do
 	[ -n "$(get $key)" ] || fail "$key is empty in $CONF"
 done
-grep -qvE '^[[:space:]]*(#|$)' "$USERS" || fail "$USERS has no usernames"
-say "OK  values filled in, $(grep -cvE '^[[:space:]]*(#|$)' "$USERS") user(s) in $USERS"
+if [ "$MODE" = user ]; then
+	[ -n "$(get AD_UPN_SUFFIX)$(get AD_DOMAIN)$(get AD_USER_BIND_FORMAT)" ] || fail "AD_BIND_MODE=user needs AD_UPN_SUFFIX (or AD_DOMAIN) in $CONF"
+	[ -n "$TEST_USER" ] || fail "AD_BIND_MODE=user has no service account to test with. Run:  ./apply-ad.sh --test-login USER   (a real directory user, password asked silently)"
+	say "OK  mode: user  (no service account; every person signs in with their own password)"
+else
+	say "OK  mode: service  (read-only service account)"
+fi
+if [ "$USELIST" = 1 ]; then
+	[ -f "$USERS" ] || fail "$USERS not found. Copy ad/ad-users.txt.example to $USERS and list the allowed usernames (or set AD_ALLOW_LIST=false and use AD groups)."
+	grep -qvE '^[[:space:]]*(#|$)' "$USERS" || fail "$USERS has no usernames"
+	say "OK  values filled in, $(grep -cvE '^[[:space:]]*(#|$)' "$USERS") user(s) in $USERS"
+else
+	[ -n "$(get AD_ADMINS_GROUP)$(get AD_TECHS_GROUP)" ] || fail "AD_ALLOW_LIST=false needs AD_ADMINS_GROUP or AD_TECHS_GROUP, otherwise everybody in the directory could log in"
+	say "OK  values filled in; no user list: members of the AD group(s) can log in"
+	if [ "$MODE" = user ]; then
+		say "NOTE  mode user + no user list: any name typed on the login page is tried against Active Directory, so wrong guesses can count towards the AD lock-out policy. A user list (AD_ALLOW_LIST=true) avoids that."
+	fi
+fi
 
 # 2. 2FA is a security setting: this script never turns it off by itself
 REQ2FA="$(get AD_REQUIRE_2FA)"
@@ -59,7 +80,7 @@ else
 fi
 
 # 3. file permissions: the file holds the service account password
-chmod 600 "$CONF" 2>/dev/null; chmod 640 "$USERS" 2>/dev/null
+chmod 600 "$CONF" 2>/dev/null; [ -f "$USERS" ] && chmod 640 "$USERS" 2>/dev/null
 say "OK  file permissions set"
 
 # 4. can the server be reached at all?
@@ -71,7 +92,7 @@ else
 	say "NOTE  $SERVER:$PORT is not reachable from this machine itself; the test from inside the SecureDesk container below decides"
 fi
 
-# 5. service account and base DN, tested by the SecureDesk server code itself
+# 5. connection (and service account / base DN, or the test user), tested by the SecureDesk server code itself
 ENVARGS=()
 if [ -n "$TEST_USER" ]; then
 	read -r -s -p "Password of $TEST_USER (not shown, not stored): " AD_TEST_PASSWORD; echo

@@ -1,5 +1,7 @@
 #!/bin/bash
 # SecureDesk container entrypoint.
+#  0. if started as root (e.g. an older data volume still owned by root), fixes ownership of the
+#     data volume then re-execs itself as the non-root "securedesk" user,
 #  1. keeps appsettings.json in the data volume (so it survives container re-creation),
 #  2. starts the web app,
 #  3. on the very first start creates the default administrator account (see README, "Default login").
@@ -9,6 +11,11 @@ RemotelyData=/remotely-data
 AppSettingsVolume=$RemotelyData/appsettings.json
 AppSettingsWww=$ServerDir/appsettings.json
 SeedMarker=$RemotelyData/.securedesk-admin-seeded
+
+if [ "$(id -u)" = "0" ]; then
+	chown -R securedesk:securedesk "$RemotelyData" 2>/dev/null || true
+	exec gosu securedesk "$0" "$@"
+fi
 
 echo "Entered main script."
 

@@ -1,9 +1,8 @@
 # SecureDesk
 A remote control and remote scripting solution, built with .NET 6, Blazor, SignalR Core, and WebRTC.
 
-> This file is the original Remotely README, kept for reference. **SecureDesk** builds on the open-source
-> [Remotely](https://github.com/immense/Remotely) project (GNU GPL v3) and adds its own interface and Docker setup.
-> Internal names (namespaces, assembly/file names such as `Remotely_Server.dll`, database tables, API routes) are kept for compatibility. See `CHANGES.md`.
+> **SecureDesk** is a rebranded distribution of the open-source [Remotely](https://github.com/immense/Remotely) project (MIT License).
+> Only user-facing branding was changed; internal names (namespaces, assembly/file names such as `Remotely_Server.dll`, database tables, API routes) are intentionally unchanged for compatibility. See `REBRANDING.md`.
 
 ---
 

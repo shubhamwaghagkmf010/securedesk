@@ -240,7 +240,7 @@ namespace Remotely.Agent.Installer.Win.ViewModels
                 var connectionInfoPath = Path.Combine(programFiles, "SecureDesk", "ConnectionInfo.json");
                 if (!File.Exists(connectionInfoPath))
                 {
-                    // Installation made by an earlier build.
+                    // Installation made before the rebrand.
                     connectionInfoPath = Path.Combine(programFiles, "Remotely", "ConnectionInfo.json");
                 }
 

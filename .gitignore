@@ -300,8 +300,3 @@ docker/overlay/Content/
 *.crt
 *.pfx
 *.log
-ad/ad-config.env
-ad/ad-users.txt
-ad/ad-apply.log
-ad/*.crt
-ad/*.pem
