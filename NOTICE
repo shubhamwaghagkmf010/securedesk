@@ -1,10 +1,10 @@
 SecureDesk
 ==========
 
-SecureDesk is a modified version of Remotely
-(https://github.com/immense/Remotely), version 2022.08.02.0428,
-Copyright (c) Jared Goodwin / Translucency Software / Immense Networks, released under the GNU General Public License version 3.
-The full license text is in the LICENSE file and applies to this distribution. Because the license is a copyleft license,
+SecureDesk builds on the open-source Remotely project (https://github.com/immense/Remotely), version 2022.08.02.0428,
+Copyright (c) Jared Goodwin / Translucency Software / Immense Networks, released under the GNU General Public License version 3,
+and adds its own user interface, themes, Windows client design, Docker/HTTPS setup and other changes.
+The full license text is in the LICENSE file and applies to this distribution. Because it is a copyleft license,
 anyone who receives SecureDesk (source, Docker image or Windows clients) must also be able to get the corresponding source code:
 it is this repository.
 
