@@ -9,7 +9,7 @@
 
 ARG UPSTREAM_VERSION=2022.08.02.0428
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0-bookworm-slim AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS build
 ARG UPSTREAM_VERSION
 WORKDIR /src
 COPY . .
@@ -48,8 +48,11 @@ RUN sed -i 's/\r$//' /tmp/patch-install-scripts.sh \
  && sh /tmp/patch-install-scripts.sh /upstream/wwwroot/Content \
  && sed -i 's/The Remotely agent used for remote access/The SecureDesk agent used for remote access/' /upstream/wwwroot/Content/Install-*.sh
 
-FROM mcr.microsoft.com/dotnet/aspnet:6.0-bookworm-slim
-RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certificates && rm -rf /var/lib/apt/lists/*
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certificates gosu && rm -rf /var/lib/apt/lists/*
+# Non-root user the app actually runs as. The entrypoint starts as root just long enough to fix
+# ownership of the (possibly pre-existing, root-owned) data volume, then drops to this user via gosu.
+RUN if getent group 1654 >/dev/null; then groupmod -n securedesk "$(getent group 1654 | cut -d: -f1)"; else groupadd -g 1654 securedesk; fi && if getent passwd 1654 >/dev/null; then usermod -l securedesk -g securedesk -d /nonexistent -s /usr/sbin/nologin "$(getent passwd 1654 | cut -d: -f1)"; else useradd -u 1654 -g securedesk -M -s /usr/sbin/nologin securedesk; fi
 WORKDIR /var/www/remotely
 COPY --from=build /out/ ./
 COPY --from=upstream-content /upstream/wwwroot/Content/ ./wwwroot/Content/
@@ -58,7 +61,8 @@ COPY --from=unix-clients /content/ ./wwwroot/Content/
 # optional: SecureDesk Windows clients (see build/Build-WindowsClients.ps1)
 COPY docker/overlay/ ./wwwroot/
 
-RUN mkdir -p /remotely-data && sed -i 's/DataSource=Remotely.db/DataSource=\/remotely-data\/Remotely.db/' appsettings.json
+RUN mkdir -p /remotely-data && sed -i 's/DataSource=Remotely.db/DataSource=\/remotely-data\/Remotely.db/' appsettings.json \
+ && chown -R securedesk:securedesk /var/www/remotely /remotely-data
 
 COPY docker/entrypoint.sh /DockerMain.sh
 RUN sed -i 's/\r$//' /DockerMain.sh && chmod 755 /DockerMain.sh

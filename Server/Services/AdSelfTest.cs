@@ -14,7 +14,7 @@ namespace Remotely.Server.Services
             var settings = new AdSettings(NullLogger<AdSettings>.Instance);
             var service = new LdapAuthService(settings, NullLogger<LdapAuthService>.Instance);
 
-            Console.WriteLine($"AD_ENABLED={settings.Enabled}  AD_REQUIRE_2FA={settings.RequireTwoFactor}  users in ad-users.txt={settings.UserCount}");
+            Console.WriteLine($"AD_ENABLED={settings.Enabled}  AD_REQUIRE_2FA={settings.RequireTwoFactor}  AD_BIND_MODE={settings.BindMode}  user list={(settings.UseAllowList ? settings.UserCount + " user(s)" : "off, groups decide")}");
 
             var problems = settings.Validate();
             if (problems.Count > 0)

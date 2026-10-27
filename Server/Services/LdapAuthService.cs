@@ -116,6 +116,10 @@ namespace Remotely.Server.Services
                 try
                 {
                     using var conn = Connect();
+                    if (_settings.UserBindMode)
+                    {
+                        return (true, $"Connected to {_settings.Server}:{_settings.Port}. No service account is used: each person signs in with their own password (test one real user with --test-login).");
+                    }
                     conn.Bind(_settings.ServiceAccount, _settings.ServicePassword);
                     var cons = new LdapSearchConstraints { ReferralFollowing = false, MaxResults = 1, TimeLimit = 10000 };
                     var res = conn.Search(_settings.BaseDn, LdapConnection.ScopeBase, "(objectClass=*)", new[] { "1.1" }, false, cons);
@@ -136,6 +140,74 @@ namespace Remotely.Server.Services
         private AdAuthResult Check(string username, string password)
         {
             try
+            {
+                return _settings.UserBindMode ? CheckAsUser(username, password) : CheckWithServiceAccount(username, password);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("AD login: {Message}", Describe(ex));
+                return new AdAuthResult { Kind = AdAuthKind.Unavailable, Reason = Describe(ex) };
+            }
+        }
+
+        // "user" mode: no service account. Only the password of the person who logs in is used. The name sent to the directory
+        // is built from the typed user name (default user@suffix) and the entry that is read back is that same account.
+        private AdAuthResult CheckAsUser(string username, string password)
+        {
+            using var conn = Connect();
+            var bindName = _settings.UserBindFormat
+                .Replace("{user}", username)
+                .Replace("{suffix}", _settings.UpnSuffix ?? string.Empty);
+            try
+            {
+                conn.Bind(bindName, password);
+            }
+            catch (LdapException ex) when (ex.ResultCode == LdapException.InvalidCredentials)
+            {
+                return Denied("wrong password, unknown user, or account locked/disabled in AD");
+            }
+
+            string searchBase;
+            int scope;
+            string filter;
+            if (bindName.Contains('='))
+            {
+                // a full DN template (advanced / other directories): the entry that carries the typed name
+                searchBase = _settings.BaseDn; scope = LdapConnection.ScopeSub;
+                filter = $"(&{_settings.UserFilter}({_settings.UserAttribute}={EscapeFilter(username)}))";
+            }
+            else
+            {
+                // user@suffix: the entry whose userPrincipalName is exactly the name that just signed in
+                searchBase = _settings.BaseDn; scope = LdapConnection.ScopeSub;
+                filter = $"(&{_settings.UserFilter}(userPrincipalName={EscapeFilter(bindName)}))";
+            }
+            var attrs = new[] { "mail", "displayName", "memberOf", "userAccountControl" };
+            var cons = new LdapSearchConstraints { ReferralFollowing = false, MaxResults = 2, TimeLimit = 10000 };
+            var res = conn.Search(searchBase, scope, filter, attrs, false, cons);
+            LdapEntry entry = null;
+            var count = 0;
+            while (res.HasMore())
+            {
+                try
+                {
+                    entry = res.Next();
+                    count++;
+                }
+                catch (LdapReferralException)
+                {
+                }
+            }
+            if (count != 1)
+            {
+                _logger.LogWarning("AD login refused: {Count} entries found for {User} after sign-in.", count, username);
+                return Denied("signed-in account could not be read back uniquely");
+            }
+            return Finish(entry, username);
+        }
+
+        private AdAuthResult CheckWithServiceAccount(string username, string password)
+        {
             {
                 using var conn = Connect();
                 conn.Bind(_settings.ServiceAccount, _settings.ServicePassword);
@@ -170,6 +242,14 @@ namespace Remotely.Server.Services
                     return Denied("account is disabled in AD");
                 }
 
+                // the group is checked BEFORE the password is tried, so people outside the groups never produce
+                // a failed sign-in in Active Directory (no lock-outs of accounts that cannot use SecureDesk anyway)
+                var denied = CheckGroups(entry, username, out var inAdmins);
+                if (denied != null)
+                {
+                    return denied;
+                }
+
                 // proves the password: bind as the user (an empty password would be an anonymous bind, refused above)
                 try
                 {
@@ -180,30 +260,42 @@ namespace Remotely.Server.Services
                     return Denied("wrong password");
                 }
 
-                var groups = Attr(entry, "memberOf")?.StringValueArray ?? Array.Empty<string>();
-                var inAdmins = InGroup(groups, _settings.AdminsGroup);
-                var inTechs = InGroup(groups, _settings.TechsGroup);
-                if ((!string.IsNullOrWhiteSpace(_settings.AdminsGroup) || !string.IsNullOrWhiteSpace(_settings.TechsGroup)) && !inAdmins && !inTechs)
-                {
-                    _logger.LogWarning("AD login refused: {User} is in neither the admins nor the technicians group.", username);
-                    return Denied("not in the configured AD group");
-                }
-
-                return new AdAuthResult
-                {
-                    Kind = AdAuthKind.Success,
-                    Username = username,
-                    Email = Attr(entry, "mail")?.StringValue,
-                    DisplayName = Attr(entry, "displayName")?.StringValue,
-                    IsAdmin = inAdmins
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("AD login: {Message}", Describe(ex));
-                return new AdAuthResult { Kind = AdAuthKind.Unavailable, Reason = Describe(ex) };
+                return Success(entry, username, inAdmins);
             }
         }
+
+        private AdAuthResult Finish(LdapEntry entry, string username)
+        {
+            var uac = Attr(entry, "userAccountControl")?.StringValue;
+            if (int.TryParse(uac, out var flags) && (flags & 2) != 0)
+            {
+                return Denied("account is disabled in AD");
+            }
+            var denied = CheckGroups(entry, username, out var inAdmins);
+            return denied ?? Success(entry, username, inAdmins);
+        }
+
+        private AdAuthResult CheckGroups(LdapEntry entry, string username, out bool inAdmins)
+        {
+            var groups = Attr(entry, "memberOf")?.StringValueArray ?? Array.Empty<string>();
+            inAdmins = InGroup(groups, _settings.AdminsGroup);
+            var inTechs = InGroup(groups, _settings.TechsGroup);
+            if ((!string.IsNullOrWhiteSpace(_settings.AdminsGroup) || !string.IsNullOrWhiteSpace(_settings.TechsGroup)) && !inAdmins && !inTechs)
+            {
+                _logger.LogWarning("AD login refused: {User} is in neither the admins nor the technicians group.", username);
+                return Denied("not in the configured AD group");
+            }
+            return null;
+        }
+
+        private static AdAuthResult Success(LdapEntry entry, string username, bool inAdmins) => new()
+        {
+            Kind = AdAuthKind.Success,
+            Username = username,
+            Email = Attr(entry, "mail")?.StringValue,
+            DisplayName = Attr(entry, "displayName")?.StringValue,
+            IsAdmin = inAdmins
+        };
 
         // the library throws when an attribute is missing (for example a user without a mail address)
         private static LdapAttribute Attr(LdapEntry entry, string name)
@@ -220,11 +312,15 @@ namespace Remotely.Server.Services
 
         private LdapConnection Connect()
         {
-            var conn = new LdapConnection { SecureSocketLayer = _settings.UseLdaps, ConnectionTimeout = 8000 };
+            // Non-obsolete replacement for the old SecureSocketLayer + UserDefinedServerCertValidationDelegate API:
+            // SSL and the cert-validation callback are configured on LdapConnectionOptions up front, before the
+            // connection object is built, instead of being set on the LdapConnection afterwards.
+            var options = new LdapConnectionOptions();
             if (_settings.UseLdaps)
             {
-                conn.UserDefinedServerCertValidationDelegate += ValidateServerCertificate;
+                options.UseSsl().ConfigureRemoteCertificateValidationCallback(ValidateServerCertificate);
             }
+            var conn = new LdapConnection(options) { ConnectionTimeout = 8000 };
             conn.Connect(_settings.Server, _settings.Port);
             return conn;
         }
@@ -316,6 +412,10 @@ namespace Remotely.Server.Services
 
         private static void RegisterFailure(string username)
         {
+            if (Failures.Count > 20000)
+            {
+                Failures.Clear();
+            }
             var key = username.ToLowerInvariant();
             Failures.AddOrUpdate(key,
                 _ => (1, DateTime.MinValue),

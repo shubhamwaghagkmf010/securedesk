@@ -17,6 +17,14 @@ namespace Remotely.Server.Services
         bool Enabled { get; }
         /// <summary>Default true. Anything but an explicit "false" keeps 2FA required.</summary>
         bool RequireTwoFactor { get; }
+        /// <summary>"service" (default): a read-only service account looks users up. "user": no service account, each person signs in with their own password.</summary>
+        string BindMode { get; }
+        bool UserBindMode { get; }
+        /// <summary>Default true: a person must be listed in ad-users.txt. Only an explicit "false" lets the AD groups alone decide.</summary>
+        bool UseAllowList { get; }
+        /// <summary>Name sent to the directory in "user" mode. Default {user}@{suffix}.</summary>
+        string UserBindFormat { get; }
+        string UpnSuffix { get; }
         string Server { get; }
         int Port { get; }
         bool UseLdaps { get; }
@@ -95,6 +103,10 @@ namespace Remotely.Server.Services
             Enabled = GetBool("AD_ENABLED", false);
             // Security setting: only an explicit "false" turns 2FA off. Missing, empty or garbage = required.
             RequireTwoFactor = !string.Equals(Get("AD_REQUIRE_2FA"), "false", StringComparison.OrdinalIgnoreCase);
+            BindMode = Get("AD_BIND_MODE", "service").ToLowerInvariant();
+            UserBindMode = BindMode == "user";
+            // Same rule as 2FA: only an explicit "false" drops the list. Missing, empty or garbage = list required.
+            UseAllowList = !string.Equals(Get("AD_ALLOW_LIST"), "false", StringComparison.OrdinalIgnoreCase);
             UseLdaps = GetBool("AD_USE_LDAPS", true);
             AllowInsecure = GetBool("AD_ALLOW_INSECURE", false);
             Server = Get("AD_SERVER");
@@ -108,10 +120,12 @@ namespace Remotely.Server.Services
             AdminsGroup = Get("AD_ADMINS_GROUP");
             TechsGroup = Get("AD_TECHS_GROUP");
             CaCertFile = Get("AD_CA_CERT_FILE");
+            UpnSuffix = Get("AD_UPN_SUFFIX", Domain);
+            UserBindFormat = Get("AD_USER_BIND_FORMAT", "{user}@{suffix}");
 
             LoadUsers();
-            logger.LogWarning("Active Directory login: enabled={Enabled}, require2FA={Require2fa}, allowed users={Users}, config={Hash}",
-                Enabled, RequireTwoFactor, UserCount, hash);
+            logger.LogWarning("Active Directory login: enabled={Enabled}, mode={Mode}, require2FA={Require2fa}, user list={List}, allowed users={Users}, config={Hash}",
+                Enabled, BindMode, RequireTwoFactor, UseAllowList ? "required" : "off (groups decide)", UserCount, hash);
             if (Enabled)
             {
                 var problems = Validate();
@@ -124,6 +138,11 @@ namespace Remotely.Server.Services
 
         public bool Enabled { get; }
         public bool RequireTwoFactor { get; }
+        public string BindMode { get; }
+        public bool UserBindMode { get; }
+        public bool UseAllowList { get; }
+        public string UserBindFormat { get; }
+        public string UpnSuffix { get; }
         public string Server { get; }
         public int Port { get; }
         public bool UseLdaps { get; }
@@ -152,6 +171,10 @@ namespace Remotely.Server.Services
 
         public bool IsUserAllowed(string username)
         {
+            if (!UseAllowList)
+            {
+                return true;
+            }
             LoadUsers();
             lock (_usersLock)
             {
@@ -164,11 +187,23 @@ namespace Remotely.Server.Services
             var problems = new List<string>();
             if (string.IsNullOrWhiteSpace(Server)) problems.Add("AD_SERVER is empty");
             if (string.IsNullOrWhiteSpace(BaseDn)) problems.Add("AD_BASE_DN is empty");
-            if (string.IsNullOrWhiteSpace(ServiceAccount)) problems.Add("AD_SERVICE_ACCOUNT is empty");
-            if (string.IsNullOrWhiteSpace(ServicePassword)) problems.Add("AD_SERVICE_PASSWORD is empty");
+            if (BindMode != "service" && BindMode != "user") problems.Add("AD_BIND_MODE must be service or user");
+            if (!UserBindMode)
+            {
+                if (string.IsNullOrWhiteSpace(ServiceAccount)) problems.Add("AD_SERVICE_ACCOUNT is empty");
+                if (string.IsNullOrWhiteSpace(ServicePassword)) problems.Add("AD_SERVICE_PASSWORD is empty");
+            }
+            else if (UserBindFormat.Contains("{suffix}") && string.IsNullOrWhiteSpace(UpnSuffix))
+            {
+                problems.Add("AD_BIND_MODE=user needs AD_UPN_SUFFIX or AD_DOMAIN");
+            }
+            if (!UseAllowList && string.IsNullOrWhiteSpace(AdminsGroup) && string.IsNullOrWhiteSpace(TechsGroup))
+            {
+                problems.Add("AD_ALLOW_LIST=false needs AD_ADMINS_GROUP or AD_TECHS_GROUP (otherwise everybody in the directory could log in)");
+            }
             if (!UseLdaps && !AllowInsecure) problems.Add("plain LDAP is refused (set AD_USE_LDAPS=true)");
             if (!string.IsNullOrWhiteSpace(CaCertFile) && !File.Exists(CaCertFile)) problems.Add("AD_CA_CERT_FILE not found");
-            if (UserCount == 0) problems.Add("ad-users.txt has no users");
+            if (UseAllowList && UserCount == 0) problems.Add("ad-users.txt has no users");
             return problems;
         }
 
