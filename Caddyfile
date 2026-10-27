@@ -9,3 +9,13 @@
 	encode gzip
 	reverse_proxy securedesk:5000
 }
+
+# Any other name or IP address that reaches this server (for example the server's LAN IP while SECUREDESK_HOST is still
+# "localhost") is served too, with a certificate from Caddy's own local CA, instead of an empty page.
+:443 {
+	tls internal {
+		on_demand
+	}
+	encode gzip
+	reverse_proxy securedesk:5000
+}
