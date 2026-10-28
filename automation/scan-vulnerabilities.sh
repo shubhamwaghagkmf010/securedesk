@@ -31,7 +31,7 @@ source "$HERE/lib/config.sh"
 
 LOG_DIR="$(eval echo "$(yaml_get log_dir '~/securedesk-auto-update/logs')")"
 STATUS_FILE="$(eval echo "$(yaml_get status_file '~/securedesk-auto-update/status.json')")"
-SOURCE_DIR="$HOME/securedesk-ui-build"
+SOURCE_DIR="$(ensure_source_tree || echo "$HOME/securedesk-ui-build")"
 TRIVY_CACHE_DIR="$HOME/securedesk-auto-update/trivy-cache"
 mkdir -p "$LOG_DIR" "$TRIVY_CACHE_DIR"
 
@@ -87,9 +87,15 @@ FIXABLE_FINDINGS=()   # entries like "CVE-xxxx-yyyy|package|installed|fixed"
 #    reads image layers, it does not touch the running container).
 # ---------------------------------------------------------------------------
 if [ "$TRIVY_ENABLED" = "true" ]; then
-	LIVE_IMAGE="$(docker inspect securedesk-securedesk-1 --format '{{.Config.Image}}' 2>/dev/null)"
+	LIVE_CONTAINER="securedesk-securedesk-1"
+	if ! docker inspect "$LIVE_CONTAINER" >/dev/null 2>&1; then
+		# Not the original VM's compose project name - find whatever SecureDesk
+		# app container actually is running on THIS server instead of assuming.
+		LIVE_CONTAINER="$(docker ps --format '{{.Names}}' | grep -E '(^|[-_])securedesk([-_]1)?$' | head -1)"
+	fi
+	LIVE_IMAGE="$(docker inspect "$LIVE_CONTAINER" --format '{{.Config.Image}}' 2>/dev/null)"
 	if [ -z "$LIVE_IMAGE" ]; then
-		log "WARN: could not determine the live image reference (is securedesk-securedesk-1 running?) - skipping image scan."
+		log "WARN: could not determine the live image reference (no running securedesk app container found) - skipping image scan."
 	else
 		log "--- Trivy scan: live image ($LIVE_IMAGE) ---"
 		IMAGE_JSON="$TRIVY_CACHE_DIR/image-scan-$TS.json"
