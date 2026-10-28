@@ -19,7 +19,7 @@ after reviewing a result.
 | `safe-deploy.sh` | **Manual only.** Backs up the compose file and the live SQLite database, swaps the production app image, health-checks it for up to ~60s, and automatically rolls back to the previous image if the health check fails. | a human, after reviewing a `ready-for-review` candidate |
 | `rollback.sh` | **Manual only.** Reverts production to a known-good image (defaults to `shubhamwaghagkmf010/securedesk:1.4.0`). | a human |
 | `git-sync-push.sh` | **Manual only.** Syncs the current `~/securedesk-ui-build` source and this `automation/` folder into a git clone of this repo and pushes, after showing the diff and asking for confirmation. | a human, when source/automation changes need to go to GitHub |
-| `securedesk-update.sh` | **Runs on EVERY SecureDesk server**, including ones set up fresh with `SecureDesk-Installation.sh` - no source code or SDK needed. Pulls whatever newer `caddy:2` / `shubhamwaghagkmf010/securedesk:latest` images are currently published, and safely swaps them in: backs up the compose file and database, restarts, health-checks for ~60s, and **automatically rolls back** (to a locally pinned copy of the previous images, not just the old floating-tag reference) if the new one doesn't come up healthy. Safe to put on cron. | any server, manually or via cron - see below |
+| `securedesk-update.sh` | **Runs on EVERY SecureDesk server**, including ones set up fresh with `SecureDesk-Installation.sh`. First runs the FULL check/scan/build-and-test pipeline locally (bootstrapping a source-tree clone and `git`/Docker on its own if they're not already there - no manual setup needed, see below), then pulls whatever newer `caddy:2` / `shubhamwaghagkmf010/securedesk:latest` images are currently published and safely swaps them in: backs up the compose file and database, restarts, health-checks for ~60s, and **automatically rolls back** (to a locally pinned copy of the previous images, not just the old floating-tag reference) if the new one doesn't come up healthy. Safe to put on cron. Pass `--skip-full-pipeline` to only do the image pull+swap part. | any server, manually or via cron - see below |
 
 ## Status and logs
 
@@ -69,6 +69,30 @@ chmod +x /opt/securedesk/securedesk-update.sh
 # weekly, Monday 4am - adjust --dir to the real install folder
 0 4 * * 1   /usr/bin/bash /opt/securedesk/securedesk-update.sh --yes --dir /opt/securedesk >> /opt/securedesk/update.log 2>&1
 ```
+
+## `securedesk-update.sh` now also runs the full pipeline, on any server
+
+Previously `check-for-updates.sh` / `scan-vulnerabilities.sh` /
+`auto-update-build-and-test.sh` only worked on the original build server
+(the only place with a hand-maintained source tree + .NET SDK). They now
+bootstrap what they need automatically via `lib/config.sh`'s
+`ensure_source_tree()`:
+
+- If `~/securedesk-ui-build` already exists (the build server), it's used
+  as-is and never touched beyond a `git pull --ff-only` if it happens to
+  be a git repo - a human still owns that tree.
+- Otherwise, a plain clone of this repo is made at `~/securedesk-src` (and
+  kept fast-forwarded on later runs) - no manual setup, and no .NET SDK
+  needed on the host either, since the actual build runs inside
+  `docker build` against the Dockerfile's own SDK stage.
+
+`securedesk-update.sh` calls this whole chain as its first step on every
+run. Build/test failures, missing git, or no network are all logged and
+treated as non-fatal for that step - the plain Docker Hub image pull+swap
+(its original job) still runs normally either way. A "ready-for-review"
+candidate built this way is reported with the exact `safe-deploy.sh`
+command to run - it is never deployed by itself. Pass
+`--skip-full-pipeline` to skip straight to the image pull+swap.
 
 ## What this system will never do by itself
 
