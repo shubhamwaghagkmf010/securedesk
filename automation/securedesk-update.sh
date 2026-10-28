@@ -8,34 +8,52 @@
 # health check and automatic rollback if anything goes wrong.
 #
 # Works on ANY server set up with SecureDesk-Installation.sh (or any
-# docker-compose.yml following the same layout). It needs no source code,
-# no .NET SDK, no build tools - it only pulls already-published images.
+# docker-compose.yml following the same layout). On its own it needs no
+# source code, no .NET SDK, no build tools - it only pulls already-published
+# images. By default it ALSO runs the full check/scan/build-and-test
+# pipeline first (see "full pipeline" below) - that part bootstraps a git
+# clone of the source tree for itself the first time it runs, but still
+# never needs a human to pre-install anything.
 #
 #   -----------------------------------------------------------------
 #   The maintainer's build/test/vulnerability-scan pipeline (what makes
 #   a new image in the first place: compiling, Trivy scanning, running
-#   the test suite) is a SEPARATE system that only runs on the build
-#   server - see automation/README.md in this repository. This script
-#   is what every OTHER SecureDesk server runs to pick up whatever that
-#   pipeline publishes.
+#   the test suite) used to only run on the build server - see
+#   automation/README.md in this repository. This script now ALSO runs
+#   that same pipeline locally on every server (bootstrapping whatever it
+#   needs - git, a clone of this repo - automatically), in addition to
+#   its original job of pulling whatever the Docker Hub images publish.
+#   Either path can surface a new candidate; a human still always decides
+#   when to actually put one into production.
 #   -----------------------------------------------------------------
 #
 # Run:      sudo bash securedesk-update.sh
 # Options:
-#   --dir PATH       install folder (auto-detected if not given: tries
-#                    /appdata/securedesk, the current folder, ./securedesk,
-#                    ~/securedesk)
-#   --yes, -y        no confirmation prompt (for cron)
-#   --check-only     report whether an update is available; change nothing
-#   --rollback       restore the most recent backup this script made, now
-#   --help, -h       show this text
+#   --dir PATH          install folder (auto-detected if not given: tries
+#                        /appdata/securedesk, the current folder,
+#                        ./securedesk, ~/securedesk)
+#   --yes, -y           no confirmation prompt (for cron)
+#   --check-only        report whether an update is available; change nothing
+#   --rollback          restore the most recent backup this script made, now
+#   --skip-full-pipeline  skip the check-for-updates/scan/build-and-test step
+#                        below and only do the Docker Hub image pull+swap
+#   --help, -h          show this text
 #
 # What happens, step by step:
 #   1. Checks this server (docker present, root/sudo)
 #   2. Finds the SecureDesk install folder
-#   3. Records the currently-running image IDs
-#   4. Pulls the latest images (docker compose pull)
-#   5. Nothing changed -> stops here, nothing is restarted
+#   3. Runs the full update-detection pipeline (unless --skip-full-pipeline):
+#      bootstraps a source-tree clone if one isn't already present, then
+#      runs check-for-updates.sh, which itself chains into
+#      scan-vulnerabilities.sh and auto-update-build-and-test.sh as needed.
+#      This can produce a "ready-for-review" candidate image, built and
+#      fully tested locally - it is NEVER deployed automatically; this step
+#      only reports it and tells you the exact safe-deploy.sh command to
+#      run by hand. Any failure here (no network, no git, build/test
+#      failure) is logged and does not stop the rest of this script.
+#   4. Records the currently-running image IDs
+#   5. Pulls the latest published images (docker compose pull) - nothing
+#      changed -> stops here, nothing is restarted
 #   6. Something changed -> backs up docker-compose.yml and the live
 #      SQLite database, then restarts with the new images
 #   7. Health-checks the site for up to ~60 seconds
@@ -46,7 +64,9 @@
 #
 # Safe to run from cron on a schedule: it only ever changes anything when
 # there is something new to apply, and it always verifies before leaving
-# a new version running.
+# a new version running. Production is NEVER auto-deployed from a
+# pipeline-built candidate - only from the already-published Docker Hub
+# image, which went through that same pipeline and a human review earlier.
 #
 # One-line install (downloads and runs this script):
 #   curl -fsSL https://raw.githubusercontent.com/shubhamwaghagkmf010/securedesk/main/automation/securedesk-update.sh -o securedesk-update.sh
@@ -57,14 +77,16 @@
 #
 set -uo pipefail
 
-VERSION="1.0"
+VERSION="1.1"
 DIR="${SECUREDESK_DIR:-}"
 ASSUME_YES=0
 CHECK_ONLY=0
 DO_ROLLBACK=0
+SKIP_FULL_PIPELINE=0
 LOG="/tmp/securedesk-update-$(date +%Y%m%d-%H%M%S).log"
 HEALTH_TRIES=20
 HEALTH_INTERVAL=3
+REPO_URL="https://github.com/shubhamwaghagkmf010/securedesk.git"
 
 while [ $# -gt 0 ]; do
 	case "$1" in
@@ -72,7 +94,8 @@ while [ $# -gt 0 ]; do
 		--yes|-y) ASSUME_YES=1; shift;;
 		--check-only) CHECK_ONLY=1; shift;;
 		--rollback) DO_ROLLBACK=1; shift;;
-		--help|-h) sed -n '2,46p' "$0" | sed 's/^# \{0,1\}//'; exit 0;;
+		--skip-full-pipeline) SKIP_FULL_PIPELINE=1; shift;;
+		--help|-h) sed -n '2,76p' "$0" | sed 's/^# \{0,1\}//'; exit 0;;
 		*) echo "Unknown option: $1 (try --help)"; exit 2;;
 	esac
 done
@@ -95,7 +118,7 @@ die()   { fail "$*"; fail "Full log: $LOG"; exit 1; }
 
 echo "SecureDesk updater v$VERSION - log: $LOG"
 
-step "1/7  Checking this server"
+step "1/8  Checking this server"
 SU=""
 if [ "$(id -u)" != 0 ]; then
 	if command -v sudo >/dev/null 2>&1; then SU="sudo"; warn "Not running as root - using sudo where needed"
@@ -104,7 +127,7 @@ fi
 command -v docker >/dev/null 2>&1 || die "docker not found on this server."
 ok "Docker found: $(docker --version 2>/dev/null)"
 
-step "2/7  Finding the install folder"
+step "2/8  Finding the install folder"
 if [ -z "$DIR" ]; then
 	for c in /appdata/securedesk "$PWD" "$PWD/securedesk" "$HOME/securedesk"; do
 		if [ -f "$c/docker-compose.yml" ]; then DIR="$c"; break; fi
@@ -144,7 +167,66 @@ if [ "$DO_ROLLBACK" = 1 ]; then
 	exit 0
 fi
 
-step "3/7  Recording the currently-running images"
+step "3/8  Running the full update-detection pipeline"
+if [ "$SKIP_FULL_PIPELINE" = 1 ]; then
+	info "--skip-full-pipeline given - skipping check-for-updates/scan/build-and-test."
+else
+	PIPELINE_HOME="${SECUREDESK_SRC_DIR:-$HOME/securedesk-src}"
+	AUTOMATION_DIR=""
+	if [ -f "$HOME/securedesk-auto-update/check-for-updates.sh" ]; then
+		# Build server: the hand-maintained source tree + automation scripts
+		# already exist locally - use them as-is, nothing to bootstrap.
+		AUTOMATION_DIR="$HOME/securedesk-auto-update"
+	else
+		# Any other server: bootstrap (clone, or fast-forward pull if already
+		# cloned) a plain copy of the public repo, which carries both the
+		# source tree AND this automation/ folder together.
+		if [ -d "$PIPELINE_HOME/.git" ]; then
+			git -C "$PIPELINE_HOME" pull --ff-only >>"$LOG" 2>&1 || warn "Could not update $PIPELINE_HOME (network issue?) - using whatever is there."
+		elif [ ! -d "$PIPELINE_HOME" ]; then
+			if ! command -v git >/dev/null 2>&1; then
+				if command -v apt-get >/dev/null 2>&1 && [ "$(id -u)" = 0 ]; then
+					info "Installing git (needed to bootstrap the update-detection pipeline) ..."
+					apt-get update -y >>"$LOG" 2>&1 && apt-get install -y git >>"$LOG" 2>&1
+				fi
+			fi
+			if command -v git >/dev/null 2>&1; then
+				info "Cloning $REPO_URL -> $PIPELINE_HOME ..."
+				git clone "$REPO_URL" "$PIPELINE_HOME" >>"$LOG" 2>&1 || warn "Clone failed (see $LOG) - skipping the full pipeline this run."
+			else
+				warn "git not available and could not be installed - skipping the full pipeline this run."
+			fi
+		fi
+		[ -f "$PIPELINE_HOME/automation/check-for-updates.sh" ] && AUTOMATION_DIR="$PIPELINE_HOME/automation"
+	fi
+
+	if [ -n "$AUTOMATION_DIR" ]; then
+		info "Running $AUTOMATION_DIR/check-for-updates.sh ..."
+		if bash "$AUTOMATION_DIR/check-for-updates.sh" >>"$LOG" 2>&1; then
+			ok "Base-image/.NET-channel check finished - see $LOG for detail."
+		else
+			warn "check-for-updates.sh reported an error (non-fatal) - see $LOG for detail."
+		fi
+		info "Running $AUTOMATION_DIR/scan-vulnerabilities.sh ..."
+		if bash "$AUTOMATION_DIR/scan-vulnerabilities.sh" >>"$LOG" 2>&1; then
+			ok "Vulnerability scan finished - see $LOG for detail."
+		else
+			warn "scan-vulnerabilities.sh reported an error (non-fatal) - see $LOG for detail."
+		fi
+		STATUS_FILE="$(eval echo "$(grep -E '^status_file:' "$AUTOMATION_DIR/auto-update-config.yaml" 2>/dev/null | sed -E 's/^[^:]+:[[:space:]]*"?//; s/"?[[:space:]]*$//')" 2>/dev/null)"
+		[ -n "$STATUS_FILE" ] || STATUS_FILE="$HOME/securedesk-auto-update/status.json"
+		if [ -f "$STATUS_FILE" ] && grep -q '"ready-for-review"' "$STATUS_FILE" 2>/dev/null; then
+			CANDIDATE="$(grep -oE 'securedesk:auto-update-candidate-[0-9-]+' "$STATUS_FILE" | head -1)"
+			ok "Pipeline built and fully tested a candidate: ${CANDIDATE:-see $STATUS_FILE}"
+			ok "Nothing was deployed. To put it into production on THIS server, review it and run:"
+			ok "  sudo bash $AUTOMATION_DIR/safe-deploy.sh ${CANDIDATE:-<candidate-tag-from-$STATUS_FILE>}"
+		fi
+	else
+		warn "No source tree / automation scripts available for this server - skipping the full pipeline this run. The Docker-Hub-image pull below still runs normally."
+	fi
+fi
+
+step "4/8  Recording the currently-running images"
 # Compare by the IMAGE REFERENCE each service uses (docker compose config --images),
 # not `docker compose images -q` - that reports the currently-RUNNING container's
 # image, which does not change just because a newer one was pulled for the same tag.
@@ -162,7 +244,7 @@ done
 OLD_IDS="$(ids_for_refs)"
 ok "Recorded $(echo "$IMAGE_REFS" | wc -w) tracked image(s): $(echo "$IMAGE_REFS" | tr '\n' ' ')"
 
-step "4/7  Pulling the latest images"
+step "5/8  Pulling the latest images"
 $COMPOSE pull >>"$LOG" 2>&1 || die "docker compose pull failed - see $LOG for details (network / Docker Hub reachable?)"
 NEW_IDS="$(ids_for_refs)"
 
@@ -188,7 +270,7 @@ if [ "$ASSUME_YES" != 1 ]; then
 	fi
 fi
 
-step "5/7  Backing up the compose file and the database"
+step "6/8  Backing up the compose file and the database"
 TS="$(date +%Y%m%d-%H%M%S)"
 COMPOSE_BACKUP="docker-compose.yml.update-backup-$TS"
 cp docker-compose.yml "$COMPOSE_BACKUP"
@@ -233,11 +315,11 @@ else
 	warn "Could not find the securedesk-data volume - skipping database backup."
 fi
 
-step "6/7  Restarting with the new images"
+step "7/8  Restarting with the new images"
 $COMPOSE up -d >>"$LOG" 2>&1 || die "docker compose up -d failed - see $LOG"
 ok "Restarted."
 
-step "7/7  Health-checking"
+step "8/8  Health-checking"
 HOST="localhost"
 HTTPS_PORT="443"
 if [ -f .env ]; then

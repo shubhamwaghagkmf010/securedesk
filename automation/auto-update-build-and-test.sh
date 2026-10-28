@@ -23,7 +23,6 @@ CONFIG_FILE="$HERE/auto-update-config.yaml"
 # shellcheck source=lib/config.sh
 source "$HERE/lib/config.sh"
 
-SOURCE_DIR="$HOME/securedesk-ui-build"   # canonical source tree (established during the security-fix phases)
 LOG_DIR="$(eval echo "$(yaml_get log_dir '~/securedesk-auto-update/logs')")"
 STATUS_FILE="$(eval echo "$(yaml_get status_file '~/securedesk-auto-update/status.json')")"
 REQUIRE_PASS="$(yaml_get require_tests_pass true)"
@@ -92,17 +91,25 @@ log "Triggered by: $*"
 log "Candidate tag: $CANDIDATE_TAG"
 [ -n "$TRIGGER_CVE" ] && log "CVE context for this run: $TRIGGER_CVE"
 
-if [ ! -d "$SOURCE_DIR" ]; then
-	log "ERROR: source dir $SOURCE_DIR not found."
-	write_status "failed" "source dir $SOURCE_DIR not found"
+SOURCE_DIR="$(ensure_source_tree)"
+if [ -z "$SOURCE_DIR" ] || [ ! -d "$SOURCE_DIR/Server" ]; then
+	log "ERROR: no source tree available and none could be bootstrapped (git missing, or no network to clone https://github.com/shubhamwaghagkmf010/securedesk.git)."
+	write_status "failed" "no source tree available - see $LOG"
 	exit 1
 fi
+log "Source tree: $SOURCE_DIR"
 
-df -h /appdata >>"$LOG" 2>&1
-AVAIL_GB="$(df --output=avail -BG /appdata 2>/dev/null | tail -1 | tr -dc '0-9')"
+# Disk-space guard - works whether this host has the original VM's
+# /appdata layout or is a fresh/lightweight server (falls back to
+# Docker's own data root, then to /).
+DISK_CHECK_PATH="/appdata"
+[ -d "$DISK_CHECK_PATH" ] || DISK_CHECK_PATH="$(docker info -f '{{.DockerRootDir}}' 2>/dev/null)"
+{ [ -n "$DISK_CHECK_PATH" ] && [ -d "$DISK_CHECK_PATH" ]; } || DISK_CHECK_PATH="/"
+df -h "$DISK_CHECK_PATH" >>"$LOG" 2>&1
+AVAIL_GB="$(df --output=avail -BG "$DISK_CHECK_PATH" 2>/dev/null | tail -1 | tr -dc '0-9')"
 if [ -n "$AVAIL_GB" ] && [ "$AVAIL_GB" -lt 5 ]; then
-	log "ERROR: only ${AVAIL_GB}G free on /appdata - aborting to avoid filling the disk. Nothing was built."
-	write_status "failed" "insufficient disk space on /appdata (${AVAIL_GB}G free, need 5G+)"
+	log "ERROR: only ${AVAIL_GB}G free on $DISK_CHECK_PATH - aborting to avoid filling the disk. Nothing was built."
+	write_status "failed" "insufficient disk space on $DISK_CHECK_PATH (${AVAIL_GB}G free, need 5G+)"
 	exit 1
 fi
 
@@ -116,7 +123,7 @@ log "Build succeeded: $CANDIDATE_TAG"
 
 log "--- Standing up isolated test instance on port $TEST_HTTPS_PORT ---"
 CADDYFILE_SRC=""
-for candidate in "$HOME/secfixtest2/Caddyfile" "$HOME/secfix-test/Caddyfile" "$HOME/ad-test/Caddyfile"; do
+for candidate in "$HOME/secfixtest2/Caddyfile" "$HOME/secfix-test/Caddyfile" "$HOME/ad-test/Caddyfile" "$SOURCE_DIR/Caddyfile"; do
 	if [ -f "$candidate" ]; then
 		CADDYFILE_SRC="$candidate"
 		break
