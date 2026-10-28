@@ -23,6 +23,13 @@ namespace Remotely.Shared.Models
 
         public string TempPassword { get; set; }
 
+        // Set to this user's SecurityStamp at the moment they were created with the
+        // well-known default admin password (see Register.cshtml.cs). Any password change
+        // updates SecurityStamp automatically, so once it no longer matches, the account is
+        // no longer treated as still using the default - no explicit "clear this flag"
+        // step needed anywhere.
+        public string SeededSecurityStamp { get; set; }
+
         public RemotelyUserOptions UserOptions { get; set; }
     }
 }

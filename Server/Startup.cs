@@ -109,11 +109,16 @@ namespace Remotely.Server
 
 
             services.AddScoped<IAuthorizationHandler, TwoFactorRequiredHandler>();
+            services.AddScoped<IAuthorizationHandler, MustChangePasswordHandler>();
             services.AddAuthorization(options =>
             {
                 options.AddPolicy(TwoFactorRequiredRequirement.PolicyName, builder =>
                 {
                     builder.Requirements.Add(new TwoFactorRequiredRequirement());
+                });
+                options.AddPolicy(MustChangePasswordRequirement.PolicyName, builder =>
+                {
+                    builder.Requirements.Add(new MustChangePasswordRequirement());
                 });
             });
 

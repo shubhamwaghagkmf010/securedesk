@@ -1,39 +1,58 @@
-﻿@using Remotely.Server.Components 
+@using Remotely.Server.Components 
 @using Remotely.Server.Auth 
 @inherits LayoutComponentBase
 
-<AuthorizeView Policy="@TwoFactorRequiredRequirement.PolicyName">
+<AuthorizeView Policy="@MustChangePasswordRequirement.PolicyName">
     <Authorized>
-            <div class="page">
-                <div class="sidebar">
-                    <NavMenu />
-                </div>
+        <AuthorizeView Policy="@TwoFactorRequiredRequirement.PolicyName" Context="twoFactorAuthState">
+            <Authorized Context="twoFactorAuthState">
+                    <div class="page">
+                        <div class="sidebar">
+                            <NavMenu />
+                        </div>
 
-                <div class="main">
-                    <div class="content px-4">
-                        @Body
+                        <div class="main">
+                            <div class="content px-4">
+                                @Body
+                            </div>
+                        </div>
+
+                        <ToastHarness />
+
+                        <ModalHarness />
+                    </div>
+            </Authorized>
+            <NotAuthorized Context="twoFactorAuthState">
+                <div class="container mt-5">
+                    <h3>Two-Factor Authentication Required</h3>
+
+                    <hr />
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <p>Two-factor authentication is required.  Click the button below to set up your authenticator app.</p>
+                            <p>
+                                <a href="/Identity/Account/Manage/TwoFactorAuthentication" class="btn btn-primary">Enable 2FA</a>
+                            </p>
+                        </div>
                     </div>
                 </div>
 
-                <ToastHarness />
-
-                <ModalHarness />
-            </div>
+            </NotAuthorized>
+        </AuthorizeView>
     </Authorized>
     <NotAuthorized>
         <div class="container mt-5">
-            <h3>Two-Factor Authentication Required</h3>
+            <h3>Change Your Password</h3>
 
             <hr />
             <div class="row">
                 <div class="col-sm-12">
-                    <p>Two-factor authentication is required.  Click the button below to set up your authenticator app.</p>
+                    <p>This account is still using the default password. For security, you must set a new password before continuing.</p>
                     <p>
-                        <a href="/Identity/Account/Manage/TwoFactorAuthentication" class="btn btn-primary">Enable 2FA</a>
+                        <a href="/Identity/Account/Manage/ChangePassword" class="btn btn-primary">Change Password</a>
                     </p>
                 </div>
             </div>
         </div>
-
     </NotAuthorized>
 </AuthorizeView>
