@@ -79,9 +79,18 @@ else
 	say "OK  2FA is required for AD users"
 fi
 
-# 3. file permissions: the file holds the service account password
-chmod 600 "$CONF" 2>/dev/null; [ -f "$USERS" ] && chmod 640 "$USERS" 2>/dev/null
-say "OK  file permissions set"
+# 3. file permissions: the file holds the service account password. The server container
+# bind-mounts this file read-only and runs as a fixed non-root UID/GID (1654, "securedesk"),
+# which essentially never matches the host account that ran this script - owner-only (600)
+# left the container unable to read its own config (confirmed: AdSettings failed with
+# "Access to the path ... is denied" and AD silently stayed off). chgrp to that container GID
+# would be the tighter fix, but it needs either root or already being a member of GID 1654 on
+# this host, which cannot be assumed here - so this is "any local account on this host" rather
+# than "only this account": the real boundary stays who can log into this host at all, same as
+# every other secret this script or the installer touches.
+chmod 644 "$CONF" 2>/dev/null
+[ -f "$USERS" ] && chmod 644 "$USERS" 2>/dev/null
+say "OK  file permissions set (readable by the container's non-root user)"
 
 # 4. can the server be reached at all?
 SERVER="$(get AD_SERVER)"; PORT="$(get AD_PORT)"
