@@ -49,6 +49,11 @@ namespace Remotely.Server.Data
 
             base.OnModelCreating(builder);
 
+            // .NET 10: Identity now surfaces a passkey/WebAuthn entity by default; this app does not use
+            // passkey login, and the entity is not configured with a key, which breaks EF model validation.
+            builder.Ignore<IdentityUserPasskey<string>>();
+            builder.Ignore<IdentityPasskeyData>();
+
             builder.Entity<IdentityUser>().ToTable("RemotelyUsers");
 
             builder.Entity<Organization>()

@@ -9,7 +9,7 @@
 
 ARG UPSTREAM_VERSION=2022.08.02.0428
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
 ARG UPSTREAM_VERSION
 WORKDIR /src
 COPY . .
@@ -48,7 +48,7 @@ RUN sed -i 's/\r$//' /tmp/patch-install-scripts.sh \
  && sh /tmp/patch-install-scripts.sh /upstream/wwwroot/Content \
  && sed -i 's/The Remotely agent used for remote access/The SecureDesk agent used for remote access/' /upstream/wwwroot/Content/Install-*.sh
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-bookworm-slim
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble
 RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certificates gosu && rm -rf /var/lib/apt/lists/*
 # Non-root user the app actually runs as. The entrypoint starts as root just long enough to fix
 # ownership of the (possibly pre-existing, root-owned) data volume, then drops to this user via gosu.
