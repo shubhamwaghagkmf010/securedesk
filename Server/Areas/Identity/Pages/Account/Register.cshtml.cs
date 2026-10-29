@@ -110,16 +110,6 @@ namespace Remotely.Server.Areas.Identity.Pages.Account
                 {
                     _logger.LogInformation("User created a new account with password.");
 
-                    // Still using the well-known default admin password (see docker/entrypoint.sh,
-                    // README, Dockerfile LABEL) - remember the SecurityStamp from right now so the
-                    // app can force a password change before anything else, until it changes (see
-                    // MustChangePasswordHandler / RemotelyUser.SeededSecurityStamp).
-                    if (Input.Password == "SecureDesk@123")
-                    {
-                        user.SeededSecurityStamp = user.SecurityStamp;
-                        await _userManager.UpdateAsync(user);
-                    }
-
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
                     var callbackUrl = Url.Page(
