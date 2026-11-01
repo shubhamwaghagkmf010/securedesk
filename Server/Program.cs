@@ -20,6 +20,11 @@ namespace Remotely.Server
                 Environment.Exit(AdSelfTest.Run());
                 return;
             }
+            if (args.Contains("--encrypt-ad-password"))
+            {
+                Environment.Exit(AdCrypto.RunEncryptTool());
+                return;
+            }
             CreateHostBuilder(args).Build().Run();
         }
 

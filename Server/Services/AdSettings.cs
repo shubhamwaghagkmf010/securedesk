@@ -115,6 +115,32 @@ namespace Remotely.Server.Services
             BaseDn = Get("AD_BASE_DN");
             ServiceAccount = Get("AD_SERVICE_ACCOUNT");
             ServicePassword = Get("AD_SERVICE_PASSWORD");
+            var encryptedPassword = Get("AD_SERVICE_PASSWORD_ENC");
+            if (!string.IsNullOrWhiteSpace(encryptedPassword))
+            {
+                var keyB64 = Environment.GetEnvironmentVariable("SECUREDESK_AD_KEY");
+                if (string.IsNullOrWhiteSpace(keyB64))
+                {
+                    logger.LogError("AD_SERVICE_PASSWORD_ENC is set but SECUREDESK_AD_KEY is missing from the environment. AD login stays off.");
+                    ServicePassword = "";
+                }
+                else
+                {
+                    try
+                    {
+                        ServicePassword = AdCrypto.Decrypt(encryptedPassword, AdCrypto.ParseKey(keyB64));
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Could not decrypt AD_SERVICE_PASSWORD_ENC with the current SECUREDESK_AD_KEY. AD login stays off.");
+                        ServicePassword = "";
+                    }
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(ServicePassword))
+            {
+                logger.LogWarning("AD_SERVICE_PASSWORD is stored in plaintext in ad-config.env. Run 'dotnet Remotely.Server.dll --encrypt-ad-password' to switch to AD_SERVICE_PASSWORD_ENC.");
+            }
             UserAttribute = Get("AD_USER_ATTRIBUTE", "sAMAccountName");
             UserFilter = Get("AD_USER_FILTER", "(&(objectCategory=person)(objectClass=user))");
             AdminsGroup = Get("AD_ADMINS_GROUP");
