@@ -338,6 +338,28 @@ namespace Remotely.Server.Services
             return inviteLink;
         }
 
+        // shared/service accounts: never treat these as a stand-in for one specific person
+        private static readonly string[] _genericUsernames = new[]
+        {
+            "root", "administrator", "admin", "system", "guest",
+            "ubuntu", "debian", "centos", "ec2-user", "pi"
+        };
+
+        private static string ExtractBareUsername(string raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                return null;
+            }
+            var idx = raw.LastIndexOf('\\');
+            var bare = idx >= 0 ? raw.Substring(idx + 1) : raw;
+            if (_genericUsernames.Contains(bare.ToLower()))
+            {
+                return null;
+            }
+            return bare;
+        }
+
         public bool AddOrUpdateDevice(Device device, out Device updatedDevice)
         {
             using var dbContext = _appDbFactory.GetContext();
@@ -345,6 +367,31 @@ namespace Remotely.Server.Services
             var existingDevice = dbContext.Devices.Find(device.ID);
             if (existingDevice != null)
             {
+                var oldUser = ExtractBareUsername(existingDevice.CurrentUser);
+                var newUser = ExtractBareUsername(device.CurrentUser);
+                if (!string.IsNullOrWhiteSpace(newUser) && !string.Equals(oldUser, newUser, StringComparison.OrdinalIgnoreCase))
+                {
+                    // the logged-in Windows user on this device changed (e.g. the PC was handed
+                    // to someone else): if the device's current group was only following the old
+                    // user's name, move it to the new user's own group; a manually-named group
+                    // (one that does not match the old user) is never touched automatically.
+                    var currentGroupName = existingDevice.DeviceGroupID is null
+                        ? null
+                        : dbContext.DeviceGroups.Find(existingDevice.DeviceGroupID)?.Name;
+                    var canAutoMove = existingDevice.DeviceGroupID is null ||
+                        (currentGroupName != null && string.Equals(currentGroupName, oldUser, StringComparison.OrdinalIgnoreCase));
+                    if (canAutoMove)
+                    {
+                        var newGroup = dbContext.DeviceGroups.FirstOrDefault(x =>
+                            x.OrganizationID == existingDevice.OrganizationID &&
+                            x.Name.ToLower() == newUser.ToLower());
+                        if (newGroup != null)
+                        {
+                            existingDevice.DeviceGroupID = newGroup.ID;
+                        }
+                    }
+                }
+
                 existingDevice.CurrentUser = device.CurrentUser;
                 existingDevice.DeviceName = device.DeviceName;
                 existingDevice.Drives = device.Drives;
@@ -387,6 +434,25 @@ namespace Remotely.Server.Services
                     });
                     return false;
                 }
+
+                if (device.DeviceGroupID is null)
+                {
+                    // a brand-new device: if its logged-in Windows user matches an existing
+                    // group's name (typically that user's own auto-created group), join it
+                    // automatically instead of leaving the device ungrouped.
+                    var bareUser = ExtractBareUsername(device.CurrentUser);
+                    if (!string.IsNullOrWhiteSpace(bareUser))
+                    {
+                        var matchedGroup = dbContext.DeviceGroups.FirstOrDefault(x =>
+                            x.OrganizationID == device.OrganizationID &&
+                            x.Name.ToLower() == bareUser.ToLower());
+                        if (matchedGroup != null)
+                        {
+                            device.DeviceGroupID = matchedGroup.ID;
+                        }
+                    }
+                }
+
                 dbContext.Devices.Add(device);
             }
             dbContext.SaveChanges();
@@ -970,9 +1036,8 @@ namespace Remotely.Server.Services
                     device.ID == deviceID &&
                     (
                         remotelyUser.IsAdministrator ||
-                        string.IsNullOrWhiteSpace(device.DeviceGroupID) ||
-                        device.DeviceGroup.Users.Any(user => user.Id == remotelyUser.Id
-                    )));
+                        device.DeviceGroup.Users.Any(user => user.Id == remotelyUser.Id)
+                    ));
         }
 
         public bool DoesUserHaveAccessToDevice(string deviceID, string remotelyUserID)
@@ -1226,8 +1291,6 @@ namespace Remotely.Server.Services
                     x.OrganizationID == user.OrganizationID &&
                     (
                         user.IsAdministrator ||
-                        string.IsNullOrWhiteSpace(x.DeviceGroupID) ||
-                        !x.DeviceGroup.Users.Any() ||
                         x.DeviceGroup.Users.Any(deviceUser => deviceUser.Id == user.Id)
                     ));
         }
@@ -1318,8 +1381,6 @@ namespace Remotely.Server.Services
                     x.OrganizationID == user.OrganizationID &&
                     (
                         user.IsAdministrator ||
-                        string.IsNullOrWhiteSpace(x.DeviceGroupID) ||
-                        !x.DeviceGroup.Users.Any() ||
                         x.DeviceGroup.Users.Any(deviceUser => deviceUser.Id == user.Id)
                     ))
                 .Select(x => x.ID);
