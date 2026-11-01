@@ -22,7 +22,12 @@ namespace Remotely.Agent.Services
                 var (usedStorage, totalStorage) = GetSystemDriveInfo();
                 var (usedMemory, totalMemory) = GetMemoryInGB();
 
-                device.CurrentUser = Win32Interop.GetActiveSessions().LastOrDefault()?.Username;
+                var activeUser = Win32Interop.GetActiveSessions()
+                    .LastOrDefault(session => !string.IsNullOrWhiteSpace(session.Username))
+                    ?.Username;
+                device.CurrentUser = !string.IsNullOrWhiteSpace(activeUser)
+                    ? activeUser
+                    : Win32Interop.GetLastLoggedOnUser();
                 device.Drives = GetAllDrives();
                 device.UsedStorage = usedStorage;
                 device.TotalStorage = totalStorage;

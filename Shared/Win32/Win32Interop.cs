@@ -56,6 +56,25 @@ namespace Remotely.Shared.Win32
             return sessions;
         }
 
+        // Windows updates this registry value on every interactive logon (console or RDP),
+        // and leaves it in place after logoff/disconnect. Used as a fallback for CurrentUser
+        // when no session is currently active, so device-group auto-assignment still works
+        // for machines that are only used via RDP sessions which get disconnected (not logged off).
+        public static string GetLastLoggedOnUser()
+        {
+            try
+            {
+                return Microsoft.Win32.Registry.GetValue(
+                    @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI",
+                    "LastLoggedOnUser",
+                    null) as string;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         public static string GetCommandLine()
         {
             var commandLinePtr = Kernel32.GetCommandLine();
