@@ -56,9 +56,7 @@ if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
 fi
 
 git add -A
-git commit -m "$COMMIT_MSG
-
-Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
+git commit -m "$COMMIT_MSG"
 
 echo "=== Pushing to origin main (may prompt for GitHub username + PAT) ==="
 git push origin main
